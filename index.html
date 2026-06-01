@@ -3,8 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
 <title>ChainScope · AI 供應鏈股票追蹤</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <style>
@@ -909,7 +907,7 @@ header {
     <div style="display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3)">
       <span id="last-update-label">上次更新：—</span>
     </div>
-    <button onclick="refreshAllPrices()" id="refresh-btn" style="padding:5px 12px;border-radius:4px;border:1px solid var(--border);background:none;color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">
+    <button onclick="refreshAllPrices(true)" id="refresh-btn" style="padding:5px 12px;border-radius:4px;border:1px solid var(--border);background:none;color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">
       ↻ 刷新行情
     </button>
     <div class="live-badge">
@@ -1162,7 +1160,7 @@ header {
   <button class="mobile-nav-btn" id="mnav-menu" onclick="openMobileMenu()">
     <span class="mnav-icon">☰</span>主題
   </button>
-  <button class="mobile-nav-btn" id="mnav-refresh" onclick="refreshAllPrices()">
+  <button class="mobile-nav-btn" id="mnav-refresh" onclick="refreshAllPrices(true)">
     <span class="mnav-icon">↻</span>刷新
   </button>
 </nav>
@@ -1457,7 +1455,7 @@ let selectedStock = null;
 // ─── INIT ────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   renderMap(currentTech);
-  refreshAllPrices();           // 首次載入拉行情
+  refreshAllPrices(true);           // 首次載入強制破快取
   startAutoRefresh();
 });
 
@@ -1472,32 +1470,35 @@ function getAllCodesForTech(tech) {
 }
 
 // ─── LIVE DATA: 批次拉取即時行情 ────────────────────────────────────────────
-async function refreshAllPrices() {
+async function refreshAllPrices(forceBust = false) {
   if (isLoading) return;
   isLoading = true;
 
   const btn = document.getElementById('refresh-btn');
   if (btn) btn.textContent = '↻ 更新中…';
 
-  // 收集所有 tech 的代號
+  // 收集所有 tech 的代號（一次 batch 全部送出）
   const allCodes = new Set();
   Object.keys(TECH_DATA).forEach(tech => {
     getAllCodesForTech(tech).forEach(c => allCodes.add(c));
   });
   const codeList = [...allCodes].join(',');
 
+  // 手動點「刷新」或首次載入時加 bust=1 強制清除 Worker 快取
+  const bustParam = forceBust ? '&bust=1' : '';
+
   try {
-    const res = await fetch(`${TWSE_ENDPOINT}?stocks=${codeList}`);
+    const res = await fetch(`${TWSE_ENDPOINT}?stocks=${codeList}${bustParam}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     if (json.ok && json.data) {
       Object.assign(livePrice, json.data);
       const now = new Date();
-      document.getElementById('last-update-label').textContent =
-        `上次更新：${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
-      // 刷新地圖節點的漲跌色
+      const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+      document.getElementById('last-update-label').textContent = `上次更新：${timeStr}`;
+      const mLabel = document.getElementById('m-last-update');
+      if (mLabel) mLabel.textContent = `上次更新：${timeStr}`;
       refreshMapNodes();
-      // 若有選中個股，更新價格
       if (selectedStock) updateLivePriceUI(selectedStock.code);
     }
   } catch(e) {
