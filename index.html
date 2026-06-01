@@ -706,19 +706,140 @@ header {
   animation: scan 6s linear infinite;
   pointer-events: none; z-index: 200;
 }
-</style>
 
-<!-- PWA Meta — auto-injected by PWA 打包神器 -->
-<meta name="application-name" content="股市探針">
-<meta name="description" content="股市探針應該概念">
-<meta name="theme-color" content="#1a73e8">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="股市探針">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon.svg">
-<script>if('serviceWorker'in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').then(function(r){console.log('[SW] registered:',r.scope)}).catch(function(e){console.warn('[SW] failed:',e)});});}</script>
+/* ─── MOBILE RESPONSIVE ─────────────────────────────────── */
+
+/* 手機版底部導覽列 */
+.mobile-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: 56px; z-index: 300;
+  background: rgba(7,11,18,0.97);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  flex-direction: row;
+}
+.mobile-nav-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
+  border: none; background: none;
+  color: var(--text3);
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  cursor: pointer; transition: color 0.2s;
+  padding: 6px 4px;
+}
+.mobile-nav-btn.active { color: var(--accent); }
+.mobile-nav-btn .mnav-icon { font-size: 18px; line-height: 1; }
+
+/* 手機版 sheet（側邊欄 overlay） */
+.mobile-sheet {
+  display: none;
+  position: fixed; inset: 0; z-index: 400;
+}
+.mobile-sheet-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(2px);
+}
+.mobile-sheet-panel {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 260px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 16px 0 80px;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+.mobile-sheet.open .mobile-sheet-panel { transform: translateX(0); }
+
+/* 手機版個股 sheet（從底部滑出） */
+.mobile-stock-sheet {
+  display: none;
+  position: fixed; inset: 0; z-index: 400;
+}
+.mobile-stock-sheet-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.6);
+}
+.mobile-stock-sheet-panel {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  max-height: 85vh;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  border-radius: 16px 16px 0 0;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+  padding-bottom: 60px;
+}
+.mobile-stock-sheet.open .mobile-stock-sheet-panel { transform: translateY(0); }
+
+.mobile-sheet-handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--border2);
+  margin: 12px auto 8px;
+}
+
+/* 手機版 header 簡化 */
+@media (max-width: 768px) {
+  .header-subtitle { display: none; }
+  #last-update-label { display: none; }
+  #refresh-btn { display: none; }
+  .live-badge { font-size: 10px; }
+
+  .layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    height: calc(100vh - 56px - 56px); /* header + mobile nav */
+  }
+
+  /* sidebar 和 right-panel 在桌面版才顯示 */
+  .sidebar { display: none; }
+  .right-panel { display: none; }
+
+  /* main 佔滿全部 */
+  .main { grid-column: 1; }
+
+  /* 供應鏈地圖改為單欄 */
+  .supply-chain-map {
+    grid-template-columns: 1fr;
+    border-radius: 0;
+  }
+
+  .chain-layer {
+    border-bottom: 1px solid var(--border);
+  }
+
+  #view-map { padding: 12px; }
+  #view-table { padding: 8px; overflow-x: auto; }
+  #view-roadmap { padding: 12px; }
+
+  .main-topbar { padding: 10px 12px; gap: 8px; }
+  .topic-title { font-size: 12px; }
+  .view-tab { padding: 5px 10px; font-size: 10px; }
+
+  .mobile-nav { display: flex; }
+  
+  /* 地圖節點手機優化 */
+  .supply-node { padding: 12px; }
+  .node-name { font-size: 14px; }
+  .node-role { font-size: 12px; }
+
+  /* 表格手機：隱藏部分欄位 */
+  .stock-table th:nth-child(6),
+  .stock-table td:nth-child(6),
+  .stock-table th:nth-child(8),
+  .stock-table td:nth-child(8) { display: none; }
+  .stock-table th, .stock-table td { padding: 10px 8px; font-size: 11px; }
+}
+
+@media (min-width: 769px) {
+  .mobile-nav { display: none !important; }
+  .mobile-sheet { display: none !important; }
+  .mobile-stock-sheet { display: none !important; }
+}
+</style>
 </head>
 <body>
 
@@ -838,7 +959,7 @@ header {
     <div id="view-roadmap">
       <div class="roadmap-timeline" id="roadmap-content"></div>
     </div>
-  </main>
+</main>
 
   <!-- ─── RIGHT PANEL ─── -->
   <aside class="right-panel">
@@ -963,6 +1084,145 @@ header {
       <div class="ai-response" id="ai-response"></div>
     </div>
   </aside>
+</div>
+
+<!-- ─── MOBILE NAV BAR ─── -->
+<nav class="mobile-nav">
+  <button class="mobile-nav-btn active" id="mnav-map" onclick="mobileNav('map')">
+    <span class="mnav-icon">⬡</span>產業地圖
+  </button>
+  <button class="mobile-nav-btn" id="mnav-list" onclick="mobileNav('list')">
+    <span class="mnav-icon">▤</span>股票列表
+  </button>
+  <button class="mobile-nav-btn" id="mnav-road" onclick="mobileNav('roadmap')">
+    <span class="mnav-icon">◈</span>路線圖
+  </button>
+  <button class="mobile-nav-btn" id="mnav-menu" onclick="openMobileMenu()">
+    <span class="mnav-icon">☰</span>主題
+  </button>
+  <button class="mobile-nav-btn" id="mnav-refresh" onclick="refreshAllPrices()">
+    <span class="mnav-icon">↻</span>刷新
+  </button>
+</nav>
+
+<!-- ─── MOBILE MENU SHEET（主題選擇） ─── -->
+<div class="mobile-sheet" id="mobile-menu-sheet" onclick="closeMobileMenu(event)">
+  <div class="mobile-sheet-backdrop"></div>
+  <div class="mobile-sheet-panel" id="mobile-menu-panel">
+    <div style="padding:16px 16px 8px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:'Orbitron',monospace;font-size:14px;color:var(--accent)">CHAIN<span style="color:var(--gold)">SCOPE</span></div>
+      <button onclick="closeMobileMenu()" style="border:none;background:none;color:var(--text2);font-size:18px;cursor:pointer">✕</button>
+    </div>
+    <div class="sidebar-label" style="padding:12px 16px 6px">技術主題</div>
+    <button class="tech-btn active" id="m-btn-cowos" onclick="mobileTech('cowos')">
+      <div class="tech-icon">⬡</div>CoWoS<span class="tech-count">12</span>
+    </button>
+    <button class="tech-btn" id="m-btn-copos" onclick="mobileTech('copos')">
+      <div class="tech-icon">◈</div>CoPoS<span class="tech-count">8</span>
+    </button>
+    <button class="tech-btn" id="m-btn-photonics" onclick="mobileTech('photonics')">
+      <div class="tech-icon">◎</div>矽光子<span class="tech-count">6</span>
+    </button>
+    <button class="tech-btn" id="m-btn-aiserver" onclick="mobileTech('aiserver')">
+      <div class="tech-icon">▤</div>AI 伺服器<span class="tech-count">10</span>
+    </button>
+    <button class="tech-btn" id="m-btn-hbm" onclick="mobileTech('hbm')">
+      <div class="tech-icon">⬛</div>HBM 記憶體<span class="tech-count">7</span>
+    </button>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-label" style="padding:12px 16px 6px">快速篩選</div>
+    <button class="tech-btn" onclick="filterLayer('upstream');closeMobileMenu()">
+      <div class="tech-icon" style="border-color:#6b46b0">🔬</div>
+      <span style="color:#b57bee">上游材料/設備</span>
+    </button>
+    <button class="tech-btn" onclick="filterLayer('midstream');closeMobileMenu()">
+      <div class="tech-icon" style="border-color:#00d4ff">⚙️</div>
+      <span style="color:#00d4ff">中游製造代工</span>
+    </button>
+    <button class="tech-btn" onclick="filterLayer('downstream');closeMobileMenu()">
+      <div class="tech-icon" style="border-color:#f0b429">🖥️</div>
+      <span style="color:#f0b429">下游系統整合</span>
+    </button>
+    <div style="padding:16px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3)">
+      <div id="m-last-update">上次更新：—</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MOBILE STOCK SHEET（個股詳情） ─── -->
+<div class="mobile-stock-sheet" id="mobile-stock-sheet" onclick="closeMobileStock(event)">
+  <div class="mobile-stock-sheet-backdrop"></div>
+  <div class="mobile-stock-sheet-panel">
+    <div class="mobile-sheet-handle"></div>
+    <div style="padding:0 16px 8px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:1px">個股詳情</div>
+      <button onclick="closeMobileStock()" style="border:none;background:none;color:var(--text2);font-size:16px;cursor:pointer">✕</button>
+    </div>
+    <!-- 共用同一份 stock-detail HTML，手機版複製顯示 -->
+    <div id="m-stock-hero" style="padding:16px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--bg3),var(--panel))">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:var(--text)" id="m-d-name">—</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text3);margin-top:2px" id="m-d-code">—</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Orbitron',monospace;font-size:22px;font-weight:700" id="m-d-price">—</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;margin-top:2px" id="m-d-change">—</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px" id="m-d-tags"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)">
+      <div style="background:var(--bg2);padding:12px 14px"><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">本益比 P/E</div><div style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;color:var(--accent)" id="m-d-pe">—</div></div>
+      <div style="background:var(--bg2);padding:12px 14px"><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">毛利率</div><div style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;color:var(--gold)" id="m-d-gm">—</div></div>
+      <div style="background:var(--bg2);padding:12px 14px"><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">月營收 YoY</div><div style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600" id="m-d-yoy">—</div></div>
+      <div style="background:var(--bg2);padding:12px 14px"><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">外資持股</div><div style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600" id="m-d-foreign">—</div></div>
+    </div>
+    <!-- Linkage Score -->
+    <div style="padding:14px 16px;border-top:1px solid var(--border)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:10px">◈ 供應鏈關聯度</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:56px;height:56px;border-radius:50%;border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 16px rgba(0,212,255,0.2)">
+          <span style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--accent)" id="m-d-score">—</span>
+        </div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="font-size:11px;color:var(--text2);width:72px">營收貢獻</span>
+            <div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div id="m-d-bar-rev" style="height:100%;border-radius:2px;background:var(--accent);width:0%;transition:width 0.5s"></div></div>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text2);width:28px;text-align:right" id="m-d-val-rev">—</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="font-size:11px;color:var(--text2);width:72px">訂單能見度</span>
+            <div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div id="m-d-bar-ord" style="height:100%;border-radius:2px;background:var(--gold);width:0%;transition:width 0.5s"></div></div>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text2);width:28px;text-align:right" id="m-d-val-ord">—</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--text2);width:72px">新聞情緒</span>
+            <div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div id="m-d-bar-sent" style="height:100%;border-radius:2px;background:var(--green);width:0%;transition:width 0.5s"></div></div>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text2);width:28px;text-align:right" id="m-d-val-sent">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Events -->
+    <div style="padding:14px 16px;border-top:1px solid var(--border)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+        <div class="live-dot"></div>事件聯動監控
+      </div>
+      <div id="m-d-events"></div>
+    </div>
+    <!-- AI Query -->
+    <div style="padding:14px 16px;border-top:1px solid var(--border)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+        <div class="ai-dot"></div>AI 供應鏈問答
+      </div>
+      <div style="display:flex;gap:8px">
+        <input class="ai-input" id="m-ai-input" placeholder="問：月產能影響？" style="font-size:13px" />
+        <button class="ai-send" onclick="askAIMobile()">▶</button>
+      </div>
+      <div class="ai-response" id="m-ai-response"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1347,7 +1607,7 @@ function renderMap(tech, filterLayer) {
       <div class="node-list">
         ${items.length === 0 ? `<div style="font-size:11px;color:var(--text3);padding:8px;font-family:'IBM Plex Mono',monospace;">（此層無標的）</div>` :
         items.map(s => `
-          <div class="supply-node" onclick="showStock('${s.code}', '${tech}')">
+          <div class="supply-node" onclick="(window._showStockMobileAware||showStock)('${s.code}', '${tech}')">
             <div class="node-top">
               <div class="node-name">${s.name}</div>
               <div class="node-code">${s.code}</div>
@@ -1379,7 +1639,7 @@ function renderTable(tech) {
     const items = data[layer.key] || [];
     items.forEach(s => {
       const lp = s.linkage >= 80 ? 'lp-high' : s.linkage >= 60 ? 'lp-mid' : 'lp-low';
-      rows += `<tr onclick="showStock('${s.code}', '${tech}')">
+      rows += `<tr onclick="'(window._showStockMobileAware||showStock)('${s.code}', '${tech}')">
         <td><span class="layer-dot ${layer.dot}"></span> ${layer.label}</td>
         <td class="td-code">${s.code}</td>
         <td class="td-name">${s.name}</td>
@@ -1406,7 +1666,7 @@ function renderRoadmap(tech) {
       <div class="roadmap-desc">${item.desc}</div>
       <div class="roadmap-stocks">
         ${item.stocks.map(s => `
-          <div class="roadmap-stock-chip" onclick="showStock('${s.code}', '${tech}')">
+          <div class="roadmap-stock-chip" onclick="(window._showStockMobileAware||showStock)('${s.code}', '${tech}')">
             <span class="rsc-code">${s.code}</span>
             <span class="rsc-name">${s.name}</span>
             <span class="rsc-change ${s.dir}">${s.change}</span>
@@ -1566,20 +1826,224 @@ document.getElementById('ai-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') askAI();
 });
 
+// ─── MOBILE FUNCTIONS ────────────────────────────────────────────────────────
+
+function isMobile() { return window.innerWidth <= 768; }
+
+// 手機版底部導覽
+function mobileNav(view) {
+  ['map','list','road'].forEach(v => {
+    const btn = document.getElementById('mnav-' + (v === 'list' ? 'list' : v === 'road' ? 'road' : 'map'));
+    if (btn) btn.classList.remove('active');
+  });
+  const idMap = { map:'mnav-map', list:'mnav-list', roadmap:'mnav-road' };
+  const btn = document.getElementById(idMap[view] || 'mnav-map');
+  if (btn) btn.classList.add('active');
+
+  const tabMap = { map:'產業地圖', list:'股票列表', roadmap:'技術路線圖' };
+  // Click the matching desktop tab
+  document.querySelectorAll('.view-tab').forEach(t => {
+    if (t.textContent.trim() === tabMap[view]) t.click();
+  });
+  if (view === 'list') {
+    document.querySelectorAll('.view-tab').forEach(t => {
+      if (t.textContent.trim() === '股票列表') t.click();
+    });
+  }
+}
+
+// 手機版主題選單
+function openMobileMenu() {
+  const sheet = document.getElementById('mobile-menu-sheet');
+  sheet.style.display = 'block';
+  requestAnimationFrame(() => sheet.classList.add('open'));
+}
+function closeMobileMenu(e) {
+  if (e && e.target !== document.getElementById('mobile-menu-sheet') &&
+      !document.getElementById('mobile-menu-sheet').querySelector('.mobile-sheet-backdrop').contains(e.target) &&
+      e.target.tagName !== 'BUTTON') return;
+  const sheet = document.getElementById('mobile-menu-sheet');
+  sheet.classList.remove('open');
+  setTimeout(() => { sheet.style.display = 'none'; }, 300);
+}
+function mobileTech(tech) {
+  // Sync desktop sidebar
+  document.querySelectorAll('.tech-btn').forEach(b => b.classList.remove('active'));
+  // Update mobile menu buttons
+  ['cowos','copos','photonics','aiserver','hbm'].forEach(t => {
+    const b = document.getElementById('m-btn-' + t);
+    if (b) b.classList.toggle('active', t === tech);
+  });
+  currentTech = tech;
+  document.getElementById('topic-title').textContent = TECH_DATA[tech].title;
+  if (currentView === 'map') renderMap(tech);
+  else if (currentView === 'table') renderTable(tech);
+  else if (currentView === 'roadmap') renderRoadmap(tech);
+  clearDetail();
+  closeMobileMenu();
+}
+
+// 手機版個股詳情 sheet
+function openMobileStock(stock) {
+  // 填入資料
+  document.getElementById('m-d-name').textContent = stock.name;
+  document.getElementById('m-d-code').textContent = `${stock.code} · ${stock.layer === 'upstream' ? '上游' : stock.layer === 'midstream' ? '中游' : '下游'}`;
+  document.getElementById('m-d-price').textContent = livePrice[stock.code]
+    ? `NT$ ${livePrice[stock.code].price}` : `NT$ ${stock.price}`;
+  document.getElementById('m-d-price').style.color = stock.changeDir === 'up' ? 'var(--green)' : 'var(--red)';
+
+  const chg = livePrice[stock.code] || stock;
+  const mChg = document.getElementById('m-d-change');
+  mChg.textContent = livePrice[stock.code]
+    ? `${livePrice[stock.code].change} (${livePrice[stock.code].changePct})` : stock.change;
+  mChg.className = 'stock-change ' + stock.changeDir;
+
+  document.getElementById('m-d-tags').innerHTML = stock.tags.map(t =>
+    `<span class="position-tag">${t}</span>`).join('');
+
+  document.getElementById('m-d-pe').textContent = stock.pe;
+  document.getElementById('m-d-gm').textContent = stock.gm;
+  const yoyEl = document.getElementById('m-d-yoy');
+  yoyEl.textContent = stock.yoy;
+  yoyEl.style.color = stock.yoy.startsWith('+') ? 'var(--green)' : 'var(--red)';
+  document.getElementById('m-d-foreign').textContent = liveFundamentals[stock.code]?.foreignOwnership
+    ? liveFundamentals[stock.code].foreignOwnership + '%' : '—';
+
+  document.getElementById('m-d-score').textContent = stock.score;
+  setTimeout(() => {
+    document.getElementById('m-d-bar-rev').style.width = stock.rev + '%';
+    document.getElementById('m-d-bar-ord').style.width = stock.ord + '%';
+    document.getElementById('m-d-bar-sent').style.width = stock.sent + '%';
+  }, 80);
+  document.getElementById('m-d-val-rev').textContent = stock.rev + '%';
+  document.getElementById('m-d-val-ord').textContent = stock.ord + '%';
+  document.getElementById('m-d-val-sent').textContent = stock.sent + '%';
+
+  const evEl = document.getElementById('m-d-events');
+  if (!stock.events || stock.events.length === 0) {
+    evEl.innerHTML = `<div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;">近期無重大事件</div>`;
+  } else {
+    evEl.innerHTML = stock.events.map(ev => `
+      <div class="event-item">
+        <div class="event-top">
+          <span class="event-badge badge-${ev.type}">${ev.type==='pos'?'▲ 利多':ev.type==='neg'?'▼ 利空':'● 中性'}</span>
+          <span class="event-date">${ev.date}</span>
+        </div>
+        <div class="event-text">${ev.text}</div>
+        <div class="event-impact">${ev.impact}</div>
+      </div>`).join('');
+  }
+
+  const sheet = document.getElementById('mobile-stock-sheet');
+  sheet.style.display = 'block';
+  requestAnimationFrame(() => sheet.classList.add('open'));
+}
+function closeMobileStock(e) {
+  if (e && !e.target.classList.contains('mobile-stock-sheet') &&
+      !e.target.classList.contains('mobile-stock-sheet-backdrop')) return;
+  const sheet = document.getElementById('mobile-stock-sheet');
+  sheet.classList.remove('open');
+  setTimeout(() => { sheet.style.display = 'none'; }, 350);
+}
+
+// 手機版 AI 問答
+async function askAIMobile() {
+  const input = document.getElementById('m-ai-input');
+  const q = input.value.trim();
+  if (!q) return;
+  const responseEl = document.getElementById('m-ai-response');
+  responseEl.className = 'ai-response visible';
+  responseEl.textContent = '⟳ 分析中...';
+  const context = selectedStock
+    ? `個股：${selectedStock.name}（${selectedStock.code}），角色：${selectedStock.role}，技術：${TECH_DATA[currentTech].title}`
+    : `技術主題：${TECH_DATA[currentTech].title}`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 1000,
+        system: '你是台股 AI 供應鏈分析師，用繁體中文簡潔回答，150 字以內。',
+        messages: [{ role: 'user', content: `${context}\n\n${q}` }]
+      })
+    });
+    const data = await res.json();
+    responseEl.textContent = data.content?.map(b => b.text||'').join('') || '無回應';
+  } catch(e) {
+    responseEl.textContent = '請確認網路連線後再試。';
+  }
+  input.value = '';
+}
+document.getElementById('m-ai-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') askAIMobile();
+});
+
+// ─── 覆寫 showStock：手機版彈出 sheet，桌面版維持右側面板 ──────────────────
+const _origShowStock = showStock;
+window._showStockMobileAware = async function(code, tech) {
+  const data = TECH_DATA[tech];
+  let stock = null;
+  ['upstream','midstream','downstream'].forEach(layer => {
+    const found = data[layer].find(s => s.code === code);
+    if (found) stock = { ...found, layer };
+  });
+  if (!stock) return;
+  selectedStock = stock;
+
+  if (isMobile()) {
+    openMobileStock(stock);
+    // 背景更新即時行情
+    if (livePrice[code]) updateMobileStockPrice(code);
+    else fetch(`${TWSE_ENDPOINT}?stocks=${code}`)
+      .then(r=>r.json()).then(j=>{
+        if(j.ok&&j.data){Object.assign(livePrice,j.data);updateMobileStockPrice(code);}
+      }).catch(()=>{});
+    fetchFundamentals(code).then(fi => {
+      if (fi) {
+        const fEl = document.getElementById('m-d-foreign');
+        if (fEl && fi.foreignOwnership && fi.foreignOwnership !== '-') fEl.textContent = fi.foreignOwnership + '%';
+        if (fi.pe && fi.pe !== '-') document.getElementById('m-d-pe').textContent = fi.pe + 'x';
+        if (fi.grossMargin && fi.grossMargin !== '-') document.getElementById('m-d-gm').textContent = fi.grossMargin + '%';
+      }
+    });
+  } else {
+    // 桌面版走原有邏輯
+    await _origShowStock(code, tech);
+  }
+};
+
+function updateMobileStockPrice(code) {
+  const live = livePrice[code];
+  if (!live) return;
+  const priceEl = document.getElementById('m-d-price');
+  if (priceEl && live.price !== '0.00') {
+    priceEl.textContent = `NT$ ${live.price}`;
+    priceEl.style.color = live.changeDir === 'up' ? 'var(--green)' : 'var(--red)';
+  }
+  const chgEl = document.getElementById('m-d-change');
+  if (chgEl) {
+    chgEl.textContent = `${live.change} (${live.changePct})`;
+    chgEl.className = 'stock-change ' + live.changeDir;
+  }
+}
+
+// 同步更新 last-update 到手機選單
+const _origRefresh = refreshAllPrices;
+const origUpdateLabel = () => {
+  const label = document.getElementById('last-update-label');
+  const mLabel = document.getElementById('m-last-update');
+  if (label && mLabel) mLabel.textContent = label.textContent;
+};
+setInterval(origUpdateLabel, 5000);
+
 // Animate linkage bars on hover
 document.addEventListener('mouseover', e => {
   const node = e.target.closest('.supply-node');
-  if (node) {
-    const fill = node.querySelector('.linkage-fill');
-    if (fill) fill.style.boxShadow = '0 0 6px var(--accent)';
-  }
+  if (node) { const fill = node.querySelector('.linkage-fill'); if (fill) fill.style.boxShadow = '0 0 6px var(--accent)'; }
 });
 document.addEventListener('mouseout', e => {
   const node = e.target.closest('.supply-node');
-  if (node) {
-    const fill = node.querySelector('.linkage-fill');
-    if (fill) fill.style.boxShadow = 'none';
-  }
+  if (node) { const fill = node.querySelector('.linkage-fill'); if (fill) fill.style.boxShadow = 'none'; }
 });
 </script>
 </body>
