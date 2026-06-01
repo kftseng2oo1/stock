@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
-  <title>ChainScope · AI 供應鏈股票追蹤</title>
+<title>ChainScope · AI 供應鏈股票追蹤</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -1371,15 +1369,21 @@ const TECH_DATA = {
   photonics: {
     title: '矽光子供應鏈',
     upstream: [
-      { code: '3533', sublayer: 'material', name: '嘉聯益', role: '矽光子封裝載板', tags: ['光電基板', 'CPO 封裝'], risk: 'medium', riskNote: '矽光子市場尚在早期，量產時程未定', transitionCoeff: '+→', tcNote: 'CPO 認證進入供應鏈，成長能見度提升', price: '78.5', change: '+2.2%', changeDir: 'up', pe: '32x', mktcap: '245', gm: '28%', yoy: '+45%', score: '72%', linkage: 72, rev: 65, ord: 75, sent: 76, events: [
-        { date: '2025-06-08', type: 'pos', text: '取得英特爾矽光子模組認證，進入 CPO 供應鏈', impact: '→ 矽光子封裝需求浮現，關聯度顯著提升' }
-      ]}
+      { code: '3450', sublayer: 'equipment', name: '聯鈞', role: 'CPO 雷射封裝龍頭', tags: ['EML/VCSEL 封裝', 'COS 封裝', 'CPO 核心'], risk: 'low', riskNote: '台積電 COUPE 封裝合作夥伴，技術領先', transitionCoeff: '+↑↑', tcNote: 'CPO 量產帶動封裝產能翻倍，2026 訂單能見度高', price: '320.0', change: '+4.5%', changeDir: 'up', pe: '45x', mktcap: '890', gm: '24.8%', yoy: '+45%', score: '82%', linkage: 82, rev: 78, ord: 88, sent: 80, events: [
+        { date: '2025-06-08', type: 'pos', text: '2026 Q1 雷射封裝產能擴至 350 萬顆，YoY +192%', impact: '→ CPO 需求落地，產能擴張確立' }
+      ]},
+      { code: '3163', sublayer: 'equipment', name: '波若威', role: '光學過濾/波分複用元件', tags: ['WDM 元件', 'CPO 光學', '1.6T 認證'], risk: 'low', riskNote: '台積電與輝達 CPO 聯盟成員', transitionCoeff: '+↑↑', tcNote: '1.6T 門檻產品線帶動毛利率結構性提升', price: '185.0', change: '+3.2%', changeDir: 'up', pe: '38x', mktcap: '420', gm: '32%', yoy: '+60%', score: '76%', linkage: 76, rev: 72, ord: 80, sent: 76, events: [
+        { date: '2025-06-05', type: 'pos', text: '1.6T 高速交換機光學元件取得輝達認證', impact: '→ 矽光子 CPO 核心供應商地位確立' }
+      ]},
+      { code: '3363', sublayer: 'material', name: '上詮', role: '光收發模組/高速光連接', tags: ['光收發器', 'CPO 光引擎', '800G/1.6T'], risk: 'medium', riskNote: '傳統可插拔模組面臨 CPO 替代壓力，需技術轉型', transitionCoeff: '+→', tcNote: '積極布局 CPO，轉型進度為關鍵觀察指標', price: '95.0', change: '+1.8%', changeDir: 'up', pe: '22x', mktcap: '310', gm: '18%', yoy: '+28%', score: '65%', linkage: 65, rev: 60, ord: 68, sent: 67, events: [] }
     ],
     midstream: [
-      { code: '2330', name: '台積電', role: '矽光子晶圓代工平台', tags: ['SiPh', 'Photonic IC'], risk: 'low', riskNote: '持續領先矽光子製程', transitionCoeff: '+→', tcNote: 'CPO 量產帶動矽光子代工需求', price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '70%', linkage: 70, rev: 65, ord: 75, sent: 70, events: [] }
+      { code: '2330', name: '台積電', role: '矽光子晶圓代工 + COUPE 技術主導', tags: ['SiPh 製程', 'COUPE', 'CoWoS+CPO 整合'], risk: 'low', riskNote: '全球矽光子最先進製程，COUPE 2026 量產', transitionCoeff: '+↑↑', tcNote: 'CPO 整合進 CoWoS 封裝，帶動整條矽光子鏈', price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '78%', linkage: 78, rev: 75, ord: 82, sent: 77, events: [
+        { date: '2025-06-01', type: 'pos', text: 'COUPE 技術 2026 年整合進 CoWoS 封裝，CPO 量產時程明確', impact: '→ 矽光子供應鏈量產元年確立' }
+      ]}
     ],
     downstream: [
-      { code: '2317', name: '鴻海', bizModel: 'odm', role: '光通訊 AI 伺服器系統整合', tags: ['CPO 散熱系統', 'AI 伺服器'], risk: 'medium', riskNote: 'CPO 導入時程較慢，短期影響有限', transitionCoeff: '+→', tcNote: '矽光子成熟後毛利率有望改善', price: '182.5', change: '+1.4%', changeDir: 'up', pe: '14x', mktcap: '25200', gm: '6.1%', yoy: '+22%', score: '48%', linkage: 48, rev: 40, ord: 52, sent: 52, events: [] }
+      { code: '2317', name: '鴻海', bizModel: 'odm', role: 'AI 伺服器/CPO 交換機系統整合', tags: ['CPO 交換機', 'AI 伺服器', '光通訊機架'], risk: 'medium', riskNote: 'CPO 導入初期，系統整合複雜度高', transitionCoeff: '+→', tcNote: '矽光子成熟後毛利率改善可期', price: '182.5', change: '+1.4%', changeDir: 'up', pe: '14x', mktcap: '25200', gm: '6.1%', yoy: '+22%', score: '48%', linkage: 48, rev: 40, ord: 52, sent: 52, events: [] }
     ]
   },
   aiserver: {
@@ -1437,7 +1441,7 @@ const ROADMAP_DATA = {
       { code: '2330', name: '台積電', change: '★主導', dir: 'up' }
     ]},
     { year: '2027+', cls: 'future', tech: '矽光子 + 3D IC 整合', desc: '光電共封裝（CPO）與矽光子晶片整合進入量產，結合 CoPoS 打造超高頻寬、超低延遲的 AI 計算基礎設施。', stocks: [
-      { code: '3533', name: '嘉聯益', change: '★新機會', dir: 'up' },
+      { code: '3450', name: '聯鈞', change: '★受益', dir: 'up' },
       { code: '2330', name: '台積電', change: '★持續主導', dir: 'up' }
     ]}
   ]
@@ -1944,27 +1948,28 @@ async function askAI() {
   responseEl.textContent = '⟳ 分析中...';
 
   const context = selectedStock
-    ? `目前選中個股：${selectedStock.name}（${selectedStock.code}），供應鏈角色：${selectedStock.role}，關聯度：${selectedStock.score}，技術主題：${TECH_DATA[currentTech].title}。`
-    : `目前技術主題：${TECH_DATA[currentTech].title}。`;
+    ? `個股：${selectedStock.name}（${selectedStock.code}），角色：${selectedStock.role}，關聯度：${selectedStock.score}，技術：${TECH_DATA[currentTech].title}。`
+    : `技術主題：${TECH_DATA[currentTech].title}。`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    // 透過 Twinklehub Worker 代理，避免瀏覽器 CORS 限制
+    const res = await fetch(`${WORKER_BASE}/claude`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
-        system: `你是一位專業的台股 AI 供應鏈分析師，專精於先進封裝（CoWoS、CoPoS）、矽光子、AI 伺服器供應鏈分析。請用繁體中文簡潔回答，聚焦在供應鏈上中下游關聯性、個股影響與投資邏輯。回答限在 150 字以內。`,
-        messages: [{ role: 'user', content: `${context}\n\n問題：${q}` }]
+        system: '你是台股 AI 供應鏈分析師，專精先進封裝（CoWoS/CoPoS）、矽光子、AI 伺服器供應鏈。用繁體中文簡潔回答，聚焦供應鏈上下游關聯性與投資邏輯，150 字以內。',
+        messages: [{ role: 'user', content: `${context}\n\n${q}` }]
       })
     });
     const data = await res.json();
-    const text = data.content?.map(b => b.text || '').join('') || '（無法取得回應）';
+    if (data.error) throw new Error(data.error);
+    const text = data.content?.map(b => b.text || '').join('') || '（無回應）';
     responseEl.textContent = text;
   } catch(e) {
-    responseEl.textContent = `CoWoS 月產能擴張直接帶動上游設備商（鈦昇、弘塑）訂單能見度，其中鈦昇 CoWoS 設備佔營收 72%，關聯度最高（87%）。中游台積電月產能每增 10K wafer，約帶動設備廠季訂單成長 15-20%。`;
+    responseEl.textContent = `連線失敗：${e.message}`;
   }
-
   input.value = '';
 }
 
@@ -2104,19 +2109,20 @@ async function askAIMobile() {
     ? `個股：${selectedStock.name}（${selectedStock.code}），角色：${selectedStock.role}，技術：${TECH_DATA[currentTech].title}`
     : `技術主題：${TECH_DATA[currentTech].title}`;
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(`${WORKER_BASE}/claude`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514', max_tokens: 1000,
-        system: '你是台股 AI 供應鏈分析師，用繁體中文簡潔回答，150 字以內。',
+        system: '你是台股 AI 供應鏈分析師，專精先進封裝與 AI 伺服器供應鏈，用繁體中文簡潔回答，150 字以內。',
         messages: [{ role: 'user', content: `${context}\n\n${q}` }]
       })
     });
     const data = await res.json();
+    if (data.error) throw new Error(data.error);
     responseEl.textContent = data.content?.map(b => b.text||'').join('') || '無回應';
   } catch(e) {
-    responseEl.textContent = '請確認網路連線後再試。';
+    responseEl.textContent = `連線失敗：${e.message}`;
   }
   input.value = '';
 }
