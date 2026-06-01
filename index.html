@@ -3,8 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
 <title>ChainScope · AI 供應鏈股票追蹤</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <style>
@@ -233,6 +231,56 @@ header {
   margin-bottom: 20px;
 }
 
+/* 上游細分：材料 vs 設備 子層標籤 */
+.sublayer-divider {
+  display: flex; align-items: center; gap: 8px;
+  margin: 10px 0 6px;
+}
+.sublayer-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 2px; white-space: nowrap;
+}
+.sublayer-label.material { background: rgba(181,123,238,0.12); color: var(--purple); border: 1px solid rgba(181,123,238,0.25); }
+.sublayer-label.equipment { background: rgba(0,212,255,0.08); color: var(--accent2); border: 1px solid rgba(0,212,255,0.2); }
+.sublayer-divider-line { flex: 1; height: 1px; background: var(--border); }
+
+/* 技術風險燈號 */
+.risk-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; padding: 2px 7px; border-radius: 3px;
+  margin-top: 6px;
+}
+.risk-badge.high   { background: rgba(255,77,109,0.1);   color: var(--red);    border: 1px solid rgba(255,77,109,0.25); }
+.risk-badge.medium { background: rgba(240,180,41,0.1);   color: var(--gold);   border: 1px solid rgba(240,180,41,0.25); }
+.risk-badge.low    { background: rgba(0,230,118,0.08);   color: var(--green);  border: 1px solid rgba(0,230,118,0.2); }
+.risk-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.risk-badge.high   .risk-dot { background: var(--red);   box-shadow: 0 0 4px var(--red); }
+.risk-badge.medium .risk-dot { background: var(--gold);  box-shadow: 0 0 4px var(--gold); }
+.risk-badge.low    .risk-dot { background: var(--green); box-shadow: 0 0 4px var(--green); }
+
+/* CSP 直供 vs ODM 徽章 */
+.biz-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; padding: 1px 6px; border-radius: 2px;
+  margin-left: 4px; vertical-align: middle;
+}
+.biz-badge.csp { background: rgba(0,212,255,0.15); color: var(--accent); border: 1px solid rgba(0,212,255,0.3); }
+.biz-badge.odm { background: rgba(240,180,41,0.1); color: var(--gold);   border: 1px solid rgba(240,180,41,0.25); }
+.biz-badge.integrated { background: rgba(181,123,238,0.12); color: var(--purple); border: 1px solid rgba(181,123,238,0.3); }
+
+/* 動態係數指示 */
+.transition-coeff {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 5px; padding: 4px 6px;
+  background: rgba(0,212,255,0.04);
+  border-radius: 4px; border-left: 2px solid var(--accent2);
+}
+.tc-label { font-size: 9px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
+.tc-value { font-size: 10px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+.tc-arrow { font-size: 10px; }
+
 .supply-chain-map {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -322,6 +370,10 @@ header {
   color: var(--accent2);
   border: 1px solid rgba(0,212,255,0.15);
 }
+.node-tag.material-tag { background: rgba(181,123,238,0.08); color: var(--purple); border-color: rgba(181,123,238,0.2); }
+.node-tag.risk-tag     { background: rgba(255,77,109,0.08);  color: var(--red);    border-color: rgba(255,77,109,0.2); }
+.node-tag.csp-tag      { background: rgba(0,212,255,0.12);   color: var(--accent); border-color: rgba(0,212,255,0.3); }
+.node-tag.integrated-tag { background: rgba(181,123,238,0.1); color: var(--purple); border-color: rgba(181,123,238,0.25); }
 
 .linkage-bar {
   margin-top: 8px;
@@ -1036,9 +1088,15 @@ header {
       </div>
 
       <!-- Data source badge -->
-      <div style="padding:6px 14px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);border-bottom:1px solid var(--border);display:flex;gap:12px">
+      <div style="padding:6px 14px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center">
         <span id="src-twse">◌ 行情：—</span>
         <span id="src-goodinfo">◌ 財報：—</span>
+        <span id="src-freshness" style="margin-left:auto;color:var(--text3)"></span>
+      </div>
+      <!-- Risk & Biz Model indicator -->
+      <div id="d-risk-section" style="display:none;padding:8px 14px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span id="d-risk-badge" class="risk-badge low"></span>
+        <span id="d-tc-section" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3)"></span>
       </div>
 
       <div class="linkage-section">
@@ -1249,40 +1307,42 @@ const TECH_DATA = {
   cowos: {
     title: 'CoWoS 先進封裝供應鏈',
     upstream: [
-      { code: '3515', name: '鈦昇', role: 'CoWoS 濕製程設備', tags: ['晶圓清洗設備', 'CoWoS 認證'], price: '248.5', change: '+3.2%', changeDir: 'up', pe: '42x', mktcap: '326', gm: '38%', yoy: '+67%', score: '87%', linkage: 87, rev: 72, ord: 88, sent: 91, events: [
+      // 子層：製程設備
+      { code: '3515', sublayer: 'equipment', name: '鈦昇', role: 'CoWoS 濕製程設備', tags: ['晶圓清洗設備', 'CoWoS 認證'], risk: 'low', riskNote: '台積電擴產直接帶動', transitionCoeff: '+↑', tcNote: '月產能每+10K wafer，訂單+15~20%', price: '248.5', change: '+3.2%', changeDir: 'up', pe: '42x', mktcap: '326', gm: '38%', yoy: '+67%', score: '87%', linkage: 87, rev: 72, ord: 88, sent: 91, events: [
         { date: '2025-06-10', type: 'pos', text: '法說會透露 CoWoS 設備新訂單超出預期，Q3 交機量將達 180 台', impact: '→ CoWoS 月產能擴張直接受益' },
         { date: '2025-05-28', type: 'neu', text: '公告董事會通過現金增資案，募資用於擴廠', impact: '→ 稀釋 EPS 約 4%，惟長期產能看增' }
       ]},
-      { code: '3092', name: '弘塑', role: '先進封裝製程設備', tags: ['單片清洗機', 'ALD 設備'], price: '412.0', change: '+1.8%', changeDir: 'up', pe: '35x', mktcap: '285', gm: '42%', yoy: '+48%', score: '74%', linkage: 74, rev: 65, ord: 72, sent: 85, events: [
+      { code: '3092', sublayer: 'equipment', name: '弘塑', role: '先進封裝製程設備', tags: ['單片清洗機', 'ALD 設備'], risk: 'low', riskNote: '台積電 CoWoS-L 認證廠商', transitionCoeff: '+↑', tcNote: 'CoWoS-L 量產擴大，需求同步增長', price: '412.0', change: '+1.8%', changeDir: 'up', pe: '35x', mktcap: '285', gm: '42%', yoy: '+48%', score: '74%', linkage: 74, rev: 65, ord: 72, sent: 85, events: [
         { date: '2025-06-08', type: 'pos', text: '取得台積電 CoWoS-L 製程驗證資格，進入量產供應', impact: '→ 正式成為 CoWoS-L 設備供應商' }
       ]},
-      { code: '6277', name: '正達', role: '玻璃基板材料先驅', tags: ['TGV 玻璃基板', '矽通孔替代'], price: '186.0', change: '+7.1%', changeDir: 'up', pe: '58x', mktcap: '410', gm: '31%', yoy: '+120%', score: '92%', linkage: 92, rev: 88, ord: 95, sent: 93, events: [
+      { code: '3583', sublayer: 'equipment', name: '辛耘', role: '晶圓研磨暨清洗設備', tags: ['CMP 製程', '薄晶圓處理'], risk: 'medium', riskNote: '競品壓力升溫，市占率承壓', transitionCoeff: '→', tcNote: '成長動能趨緩，需關注技術差異化', price: '167.5', change: '-0.9%', changeDir: 'down', pe: '28x', mktcap: '189', gm: '35%', yoy: '+32%', score: '61%', linkage: 61, rev: 55, ord: 60, sent: 68, events: [
+        { date: '2025-05-30', type: 'neg', text: '競爭對手 DNS 推出新型 CMP 設備，規格略勝一籌', impact: '→ 短期市占率壓力，CoWoS 關聯度小幅下修' }
+      ]},
+      // 子層：關鍵材料
+      { code: '6277', sublayer: 'material', name: '正達', role: '玻璃基板材料先驅', tags: ['TGV 玻璃基板', 'CoPoS 核心材料'], risk: 'low', riskNote: 'CoPoS 世代唯一量產玻璃基板廠', transitionCoeff: '+↑↑', tcNote: 'CoPoS 技術轉型加速，關聯度持續拉升中', price: '186.0', change: '+7.1%', changeDir: 'up', pe: '58x', mktcap: '410', gm: '31%', yoy: '+120%', score: '92%', linkage: 92, rev: 88, ord: 95, sent: 93, events: [
         { date: '2025-06-12', type: 'pos', text: '公告玻璃基板首批量產出貨，客戶為 AI 晶片大廠', impact: '→ CoPoS 玻璃基板技術落地，關聯度大幅提升' },
         { date: '2025-06-01', type: 'neu', text: '日本旭硝子入股 12%，技術合作深化', impact: '→ 原材料供應鏈穩定度提升' }
       ]},
-      { code: '3583', name: '辛耘', role: '晶圓研磨暨清洗設備', tags: ['CMP 製程', '薄晶圓處理'], price: '167.5', change: '-0.9%', changeDir: 'down', pe: '28x', mktcap: '189', gm: '35%', yoy: '+32%', score: '61%', linkage: 61, rev: 55, ord: 60, sent: 68, events: [
-        { date: '2025-05-30', type: 'neg', text: '競爭對手 DNS 推出新型 CMP 設備，規格略勝一籌', impact: '→ 短期市占率壓力，CoWoS 關聯度小幅下修' }
-      ]}
-    ],
-    midstream: [
-      { code: '2330', name: '台積電', role: 'CoWoS 核心代工平台', tags: ['CoWoS-S', 'CoWoS-L', 'CoWoS-R', 'SoIC'], price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '99%', linkage: 99, rev: 99, ord: 99, sent: 97, events: [
-        { date: '2025-06-11', type: 'pos', text: 'CoWoS 月產能突破 80K wafer，年底目標上調至 120K', impact: '→ 帶動整條上游設備材料鏈受惠' }
-      ]},
-      { code: '3711', name: '日月光', role: 'OSAT 先進封裝龍頭', tags: ['SiP', 'Fan-out', 'CoWoS 外包'], price: '145.5', change: '+0.7%', changeDir: 'up', pe: '18x', mktcap: '3580', gm: '21%', yoy: '+28%', score: '78%', linkage: 78, rev: 68, ord: 82, sent: 84, events: [
-        { date: '2025-06-05', type: 'pos', text: '承接 AMD MI400 系列 CoWoS 外包訂單', impact: '→ AI GPU 封裝需求擴大，OSAT 受益明確' }
-      ]},
-      { code: '3037', name: '欣興', role: 'ABF 載板/CoWoS 基板', tags: ['ABF 載板', 'CoWoS 有機基板'], price: '102.0', change: '-1.5%', changeDir: 'down', pe: '15x', mktcap: '815', gm: '18%', yoy: '+12%', score: '69%', linkage: 69, rev: 60, ord: 68, sent: 79, events: [
+      { code: '3037', sublayer: 'material', name: '欣興', role: 'ABF 載板材料', tags: ['ABF 載板', 'CoWoS 有機基板'], risk: 'high', riskNote: '⚠ 玻璃基板技術潛在替代風險', transitionCoeff: '-↓', tcNote: 'CoPoS 滲透率每+10%，ABF 需求估降 5~8%', price: '102.0', change: '-1.5%', changeDir: 'down', pe: '15x', mktcap: '815', gm: '18%', yoy: '+12%', score: '69%', linkage: 69, rev: 60, ord: 68, sent: 79, events: [
         { date: '2025-05-25', type: 'neg', text: '因玻璃基板技術崛起，ABF 載板長期需求存在替代風險', impact: '→ 建議關注 CoPoS 玻璃基板對 ABF 的影響時程' }
       ]}
     ],
+    midstream: [
+      { code: '2330', name: '台積電', role: 'CoWoS 核心代工平台', tags: ['CoWoS-S', 'CoWoS-L', 'CoWoS-R', 'SoIC'], risk: 'low', riskNote: '全球唯一 CoWoS 大規模量產能力', transitionCoeff: '+↑↑', tcNote: '月產能目標 120K，帶動整條供應鏈', price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '99%', linkage: 99, rev: 99, ord: 99, sent: 97, dataFreshness: 'Q1 2025 財報', events: [
+        { date: '2025-06-11', type: 'pos', text: 'CoWoS 月產能突破 80K wafer，年底目標上調至 120K', impact: '→ 帶動整條上游設備材料鏈受惠' }
+      ]},
+      { code: '3711', name: '日月光投控', role: 'OSAT 先進封裝整合', bizModel: 'integrated', tags: ['SiP', 'Fan-out', 'CoWoS 外包', '先進封裝整合'], risk: 'low', riskNote: '3D IC 需求增加，從純代工向設計協同轉型', transitionCoeff: '+↑', tcNote: 'CoWoS 外包訂單增加，OSAT 角色升級中', price: '145.5', change: '+0.7%', changeDir: 'up', pe: '18x', mktcap: '3580', gm: '21%', yoy: '+28%', score: '78%', linkage: 78, rev: 68, ord: 82, sent: 84, dataFreshness: 'Q1 2025 財報', events: [
+        { date: '2025-06-05', type: 'pos', text: '承接 AMD MI400 系列 CoWoS 外包訂單', impact: '→ AI GPU 封裝需求擴大，OSAT 受益明確' }
+      ]}
+    ],
     downstream: [
-      { code: '3231', name: '緯創', role: 'AI 伺服器 ODM', tags: ['GB200 NVL72', 'AI 機架組裝'], price: '112.0', change: '+4.3%', changeDir: 'up', pe: '22x', mktcap: '2950', gm: '8.2%', yoy: '+89%', score: '71%', linkage: 71, rev: 78, ord: 85, sent: 50, events: [
+      { code: '3231', name: '緯創', bizModel: 'odm', role: 'AI 伺服器 ODM', tags: ['GB200 NVL72', 'AI 機架組裝'], risk: 'low', riskNote: '輝達 GB300 優先量產資格確立', transitionCoeff: '+↑', tcNote: 'H2 AI 伺服器出貨量大幅上修', price: '112.0', change: '+4.3%', changeDir: 'up', pe: '22x', mktcap: '2950', gm: '8.2%', yoy: '+89%', score: '71%', linkage: 71, rev: 78, ord: 85, sent: 50, dataFreshness: '2025-05 月營收', events: [
         { date: '2025-06-09', type: 'pos', text: '取得輝達 GB300 NVL72 優先量產資格', impact: '→ H2 AI 伺服器出貨量大幅上修' }
       ]},
-      { code: '2382', name: '廣達', role: 'AI 伺服器 ODM 龍頭', tags: ['DGX H100', 'GB200', '散熱液冷'], price: '298.0', change: '+2.9%', changeDir: 'up', pe: '28x', mktcap: '5940', gm: '7.8%', yoy: '+72%', score: '68%', linkage: 68, rev: 72, ord: 80, sent: 52, events: [
+      { code: '2382', name: '廣達', bizModel: 'odm', role: 'AI 伺服器 ODM 龍頭', tags: ['DGX H100', 'GB200', 'Azure AI 直供'], risk: 'low', riskNote: 'Azure/Google CSP 長期合約穩固', transitionCoeff: '+↑', tcNote: 'AI 伺服器佔營收比重持續提升', price: '298.0', change: '+2.9%', changeDir: 'up', pe: '28x', mktcap: '5940', gm: '7.8%', yoy: '+72%', score: '68%', linkage: 68, rev: 72, ord: 80, sent: 52, dataFreshness: '2025-05 月營收', events: [
         { date: '2025-06-07', type: 'pos', text: '微軟 Azure 新增 5 億美元 AI 伺服器採購，廣達為主要受益', impact: '→ AI 伺服器佔營收比重提升至 45%' }
       ]},
-      { code: '6669', name: '緯穎', role: '超高密度 AI 伺服器', tags: ['液冷機架', 'CSP 直供'], price: '1850.0', change: '+5.2%', changeDir: 'up', pe: '38x', mktcap: '1380', gm: '11.2%', yoy: '+108%', score: '65%', linkage: 65, rev: 70, ord: 78, sent: 47, events: [
+      { code: '6669', name: '緯穎', bizModel: 'csp', role: '液冷 AI 伺服器 · CSP 直供', tags: ['液冷機架', 'CSP 直供', 'Meta/AWS 專供'], risk: 'low', riskNote: 'CSP 直供毛利率優於傳統 ODM', transitionCoeff: '+↑↑', tcNote: 'CSP 直供模式鞏固，毛利率維持高位', price: '1850.0', change: '+5.2%', changeDir: 'up', pe: '38x', mktcap: '1380', gm: '11.2%', yoy: '+108%', score: '65%', linkage: 65, rev: 70, ord: 78, sent: 47, dataFreshness: '2025-05 月營收', events: [
         { date: '2025-06-10', type: 'pos', text: '取得 Meta 液冷 AI 伺服器大單，Q3 出貨量翻倍', impact: '→ CSP 直供模式鞏固，毛利率有望維持高位' }
       ]}
     ]
@@ -1290,66 +1350,66 @@ const TECH_DATA = {
   copos: {
     title: 'CoPoS 玻璃基板供應鏈',
     upstream: [
-      { code: '6277', name: '正達', role: '玻璃基板核心供應商', tags: ['TGV 技術', 'CoPoS 材料'], price: '186.0', change: '+7.1%', changeDir: 'up', pe: '58x', mktcap: '410', gm: '31%', yoy: '+120%', score: '95%', linkage: 95, rev: 90, ord: 98, sent: 97, events: [
+      { code: '6277', sublayer: 'material', name: '正達', role: '玻璃基板核心供應商', tags: ['TGV 技術', 'CoPoS 材料'], risk: 'low', riskNote: 'CoPoS 世代最直接受益材料廠', transitionCoeff: '+↑↑', tcNote: 'CoPoS 量產時程明朗，關聯度持續拉升', price: '186.0', change: '+7.1%', changeDir: 'up', pe: '58x', mktcap: '410', gm: '31%', yoy: '+120%', score: '95%', linkage: 95, rev: 90, ord: 98, sent: 97, events: [
         { date: '2025-06-12', type: 'pos', text: '玻璃基板首批量產出貨，進入 CoPoS 供應鏈核心', impact: '→ CoPoS 供應鏈最直接受益標的' }
       ]},
-      { code: '6124', name: '群創', role: '玻璃基板製造轉型', tags: ['玻璃面板加工', 'TGV 鑽孔'], price: '14.8', change: '+0.7%', changeDir: 'up', pe: '12x', mktcap: '412', gm: '9%', yoy: '+8%', score: '45%', linkage: 45, rev: 35, ord: 48, sent: 52, events: [
+      { code: '6124', sublayer: 'material', name: '群創', role: '玻璃基板製造轉型', tags: ['玻璃面板加工', 'TGV 鑽孔'], risk: 'medium', riskNote: '轉型初期，量產時程仍有不確定性', transitionCoeff: '+→', tcNote: '關聯度持續上升中，轉型進度為關鍵變數', price: '14.8', change: '+0.7%', changeDir: 'up', pe: '12x', mktcap: '412', gm: '9%', yoy: '+8%', score: '45%', linkage: 45, rev: 35, ord: 48, sent: 52, events: [
         { date: '2025-05-20', type: 'neu', text: '宣布與正達合作開發玻璃基板加工產線', impact: '→ 轉型 CoPoS 供應商，關聯度持續上升中' }
       ]}
     ],
     midstream: [
-      { code: '2330', name: '台積電', role: 'CoPoS 製程研發主導', tags: ['CoPoS 量產準備', '3D IC'], price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '85%', linkage: 85, rev: 80, ord: 90, sent: 85, events: [
+      { code: '2330', name: '台積電', role: 'CoPoS 製程研發主導', tags: ['CoPoS 量產準備', '3D IC'], risk: 'low', riskNote: '主導 CoPoS 路線圖', transitionCoeff: '+↑', tcNote: '2026 Q2 量產目標明確', price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '85%', linkage: 85, rev: 80, ord: 90, sent: 85, events: [
         { date: '2025-06-01', type: 'pos', text: 'CoPoS 製程預計 2026 Q2 進入量產階段', impact: '→ 玻璃基板供應鏈量產時程明朗化' }
       ]}
     ],
     downstream: [
-      { code: '3231', name: '緯創', role: 'CoPoS 世代 AI 伺服器準備', tags: ['次世代 AI 機架', 'CoPoS 相容設計'], price: '112.0', change: '+4.3%', changeDir: 'up', pe: '22x', mktcap: '2950', gm: '8.2%', yoy: '+89%', score: '55%', linkage: 55, rev: 50, ord: 58, sent: 57, events: [] }
+      { code: '3231', name: '緯創', bizModel: 'odm', role: 'CoPoS 世代 AI 伺服器準備', tags: ['次世代 AI 機架', 'CoPoS 相容設計'], risk: 'low', riskNote: '次世代機架設計已啟動', transitionCoeff: '+→', tcNote: 'CoPoS 量產落地後直接受益', price: '112.0', change: '+4.3%', changeDir: 'up', pe: '22x', mktcap: '2950', gm: '8.2%', yoy: '+89%', score: '55%', linkage: 55, rev: 50, ord: 58, sent: 57, events: [] }
     ]
   },
   photonics: {
     title: '矽光子供應鏈',
     upstream: [
-      { code: '3533', name: '嘉聯益', role: '矽光子封裝載板', tags: ['光電基板', 'CPO 封裝'], price: '78.5', change: '+2.2%', changeDir: 'up', pe: '32x', mktcap: '245', gm: '28%', yoy: '+45%', score: '72%', linkage: 72, rev: 65, ord: 75, sent: 76, events: [
+      { code: '3533', sublayer: 'material', name: '嘉聯益', role: '矽光子封裝載板', tags: ['光電基板', 'CPO 封裝'], risk: 'medium', riskNote: '矽光子市場尚在早期，量產時程未定', transitionCoeff: '+→', tcNote: 'CPO 認證進入供應鏈，成長能見度提升', price: '78.5', change: '+2.2%', changeDir: 'up', pe: '32x', mktcap: '245', gm: '28%', yoy: '+45%', score: '72%', linkage: 72, rev: 65, ord: 75, sent: 76, events: [
         { date: '2025-06-08', type: 'pos', text: '取得英特爾矽光子模組認證，進入 CPO 供應鏈', impact: '→ 矽光子封裝需求浮現，關聯度顯著提升' }
       ]}
     ],
     midstream: [
-      { code: '2330', name: '台積電', role: '矽光子晶圓代工平台', tags: ['SiPh', 'Photonic IC'], price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '70%', linkage: 70, rev: 65, ord: 75, sent: 70, events: [] }
+      { code: '2330', name: '台積電', role: '矽光子晶圓代工平台', tags: ['SiPh', 'Photonic IC'], risk: 'low', riskNote: '持續領先矽光子製程', transitionCoeff: '+→', tcNote: 'CPO 量產帶動矽光子代工需求', price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '70%', linkage: 70, rev: 65, ord: 75, sent: 70, events: [] }
     ],
     downstream: [
-      { code: '2317', name: '鴻海', role: '光通訊 AI 伺服器系統整合', tags: ['CPO 散熱系統', 'AI 伺服器'], price: '182.5', change: '+1.4%', changeDir: 'up', pe: '14x', mktcap: '25200', gm: '6.1%', yoy: '+22%', score: '48%', linkage: 48, rev: 40, ord: 52, sent: 52, events: [] }
+      { code: '2317', name: '鴻海', bizModel: 'odm', role: '光通訊 AI 伺服器系統整合', tags: ['CPO 散熱系統', 'AI 伺服器'], risk: 'medium', riskNote: 'CPO 導入時程較慢，短期影響有限', transitionCoeff: '+→', tcNote: '矽光子成熟後毛利率有望改善', price: '182.5', change: '+1.4%', changeDir: 'up', pe: '14x', mktcap: '25200', gm: '6.1%', yoy: '+22%', score: '48%', linkage: 48, rev: 40, ord: 52, sent: 52, events: [] }
     ]
   },
   aiserver: {
     title: 'AI 伺服器供應鏈',
     upstream: [
-      { code: '2409', name: '友達', role: '伺服器面板/顯示模組', tags: ['伺服器 LCD', '工業面板'], price: '16.5', change: '-0.6%', changeDir: 'down', pe: '9x', mktcap: '386', gm: '11%', yoy: '+5%', score: '28%', linkage: 28, rev: 20, ord: 30, sent: 34, events: [] },
-      { code: '2308', name: '台達電', role: '伺服器電源/散熱解決方案', tags: ['電源供應器', 'CRPS', '液冷模組'], price: '312.0', change: '+3.1%', changeDir: 'up', pe: '30x', mktcap: '8950', gm: '29%', yoy: '+38%', score: '82%', linkage: 82, rev: 78, ord: 85, sent: 83, events: [
+      { code: '2308', sublayer: 'equipment', name: '台達電', role: '電源/液冷散熱解決方案', tags: ['CRPS 電源', '液冷模組', 'GB300 認證'], risk: 'low', riskNote: 'AI 伺服器液冷成標配，強勁需求確立', transitionCoeff: '+↑↑', tcNote: '液冷模組成標配後，台達電從「可選項」→「必要項」', price: '312.0', change: '+3.1%', changeDir: 'up', pe: '30x', mktcap: '8950', gm: '29%', yoy: '+38%', score: '82%', linkage: 82, rev: 78, ord: 85, sent: 83, events: [
         { date: '2025-06-09', type: 'pos', text: '液冷電源模組取得輝達 GB300 NVL72 認證', impact: '→ AI 伺服器液冷散熱成長動能確立' }
-      ]}
+      ]},
+      { code: '2409', sublayer: 'material', name: '友達', role: '伺服器顯示模組', tags: ['伺服器 LCD', '工業面板'], risk: 'medium', riskNote: 'AI 伺服器面板非核心瓶頸，連動性有限', transitionCoeff: '→', tcNote: '成長趨勢平穩，AI 伺服器需求占比低', price: '16.5', change: '-0.6%', changeDir: 'down', pe: '9x', mktcap: '386', gm: '11%', yoy: '+5%', score: '28%', linkage: 28, rev: 20, ord: 30, sent: 34, events: [] }
     ],
     midstream: [
-      { code: '3711', name: '日月光', role: 'AI SoC 封裝測試', tags: ['AI 晶片封裝', 'HBM 整合'], price: '145.5', change: '+0.7%', changeDir: 'up', pe: '18x', mktcap: '3580', gm: '21%', yoy: '+28%', score: '75%', linkage: 75, rev: 68, ord: 80, sent: 77, events: [] }
+      { code: '3711', name: '日月光投控', bizModel: 'integrated', role: 'AI SoC 先進封裝整合', tags: ['AI 晶片封裝', 'HBM 整合', '先進封裝整合'], risk: 'low', riskNote: '封測需求與 AI SoC 出貨量高度連動', transitionCoeff: '+↑', tcNote: 'CoWoS 外包訂單帶動封測需求', price: '145.5', change: '+0.7%', changeDir: 'up', pe: '18x', mktcap: '3580', gm: '21%', yoy: '+28%', score: '75%', linkage: 75, rev: 68, ord: 80, sent: 77, events: [] }
     ],
     downstream: [
-      { code: '2382', name: '廣達', role: 'AI 伺服器 ODM 龍頭', tags: ['DGX H100', 'GB200', 'Azure AI'], price: '298.0', change: '+2.9%', changeDir: 'up', pe: '28x', mktcap: '5940', gm: '7.8%', yoy: '+72%', score: '88%', linkage: 88, rev: 85, ord: 90, sent: 89, events: [
+      { code: '2382', name: '廣達', bizModel: 'odm', role: 'AI 伺服器 ODM 龍頭', tags: ['DGX H100', 'GB200', 'Azure AI 直供'], risk: 'low', riskNote: 'Azure/Google CSP 長期合約穩固', transitionCoeff: '+↑', tcNote: 'AI 伺服器佔營收比重持續提升', price: '298.0', change: '+2.9%', changeDir: 'up', pe: '28x', mktcap: '5940', gm: '7.8%', yoy: '+72%', score: '88%', linkage: 88, rev: 85, ord: 90, sent: 89, events: [
         { date: '2025-06-07', type: 'pos', text: 'Q2 AI 伺服器出貨量達 18 萬台，YoY +95%', impact: '→ 全年 AI 伺服器出貨量上修至 70 萬台' }
       ]},
-      { code: '6669', name: '緯穎', role: '液冷 AI 伺服器', tags: ['液冷機架', 'CSP', 'NVL72'], price: '1850.0', change: '+5.2%', changeDir: 'up', pe: '38x', mktcap: '1380', gm: '11.2%', yoy: '+108%', score: '84%', linkage: 84, rev: 80, ord: 88, sent: 84, events: [] },
-      { code: '3231', name: '緯創', role: 'AI 伺服器 ODM', tags: ['GB200', 'Blackwell 機架'], price: '112.0', change: '+4.3%', changeDir: 'up', pe: '22x', mktcap: '2950', gm: '8.2%', yoy: '+89%', score: '80%', linkage: 80, rev: 78, ord: 85, sent: 77, events: [] }
+      { code: '6669', name: '緯穎', bizModel: 'csp', role: '液冷 AI 伺服器 · CSP 直供', tags: ['液冷機架', 'Meta/AWS 專供', 'NVL72'], risk: 'low', riskNote: 'CSP 直供毛利率優於傳統 ODM 約 3~4%', transitionCoeff: '+↑↑', tcNote: 'CSP 直供比重提升，毛利率結構性改善', price: '1850.0', change: '+5.2%', changeDir: 'up', pe: '38x', mktcap: '1380', gm: '11.2%', yoy: '+108%', score: '84%', linkage: 84, rev: 80, ord: 88, sent: 84, events: [] },
+      { code: '3231', name: '緯創', bizModel: 'odm', role: 'AI 伺服器 ODM', tags: ['GB200', 'Blackwell 機架'], risk: 'low', riskNote: '輝達 GB300 優先量產資格', transitionCoeff: '+↑', tcNote: 'AI 伺服器出貨量持續上修', price: '112.0', change: '+4.3%', changeDir: 'up', pe: '22x', mktcap: '2950', gm: '8.2%', yoy: '+89%', score: '80%', linkage: 80, rev: 78, ord: 85, sent: 77, events: [] }
     ]
   },
   hbm: {
     title: 'HBM 記憶體供應鏈',
     upstream: [
-      { code: '3515', name: '鈦昇', role: 'HBM 堆疊清洗設備', tags: ['TSV 製程設備', 'HBM 認證'], price: '248.5', change: '+3.2%', changeDir: 'up', pe: '42x', mktcap: '326', gm: '38%', yoy: '+67%', score: '65%', linkage: 65, rev: 60, ord: 68, sent: 67, events: [] }
+      { code: '3515', sublayer: 'equipment', name: '鈦昇', role: 'HBM 堆疊清洗設備', tags: ['TSV 製程設備', 'HBM 認證'], risk: 'low', riskNote: 'HBM 需求持續高速增長', transitionCoeff: '+↑', tcNote: 'HBM 每代容量翻倍，設備需求同步增加', price: '248.5', change: '+3.2%', changeDir: 'up', pe: '42x', mktcap: '326', gm: '38%', yoy: '+67%', score: '65%', linkage: 65, rev: 60, ord: 68, sent: 67, events: [] }
     ],
     midstream: [
-      { code: '2330', name: '台積電', role: 'HBM CoW 堆疊整合', tags: ['HBM-on-CoWoS', 'SoIC-P'], price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '80%', linkage: 80, rev: 75, ord: 85, sent: 80, events: [] },
-      { code: '3711', name: '日月光', role: 'HBM 封裝測試', tags: ['HBM 封裝', 'KGD 測試'], price: '145.5', change: '+0.7%', changeDir: 'up', pe: '18x', mktcap: '3580', gm: '21%', yoy: '+28%', score: '72%', linkage: 72, rev: 65, ord: 78, sent: 73, events: [] }
+      { code: '2330', name: '台積電', role: 'HBM CoW 堆疊整合', tags: ['HBM-on-CoWoS', 'SoIC-P'], risk: 'low', riskNote: 'HBM 整合為 CoWoS 差異化優勢', transitionCoeff: '+↑', tcNote: 'HBM4 導入加速 CoW 技術滲透', price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '80%', linkage: 80, rev: 75, ord: 85, sent: 80, events: [] },
+      { code: '3711', name: '日月光投控', bizModel: 'integrated', role: 'HBM 封裝測試整合', tags: ['HBM 封裝', 'KGD 測試', '先進封裝整合'], risk: 'low', riskNote: 'HBM KGD 測試為高技術門檻業務', transitionCoeff: '+↑', tcNote: 'HBM4 導入，測試複雜度增加', price: '145.5', change: '+0.7%', changeDir: 'up', pe: '18x', mktcap: '3580', gm: '21%', yoy: '+28%', score: '72%', linkage: 72, rev: 65, ord: 78, sent: 73, events: [] }
     ],
     downstream: [
-      { code: '2382', name: '廣達', role: 'HBM AI 伺服器整合', tags: ['HBM4 相容設計'], price: '298.0', change: '+2.9%', changeDir: 'up', pe: '28x', mktcap: '5940', gm: '7.8%', yoy: '+72%', score: '62%', linkage: 62, rev: 58, ord: 65, sent: 63, events: [] }
+      { code: '2382', name: '廣達', bizModel: 'odm', role: 'HBM AI 伺服器整合', tags: ['HBM4 相容設計', 'GB200 機架'], risk: 'low', riskNote: '高頻寬記憶體需求跟隨 AI 算力', transitionCoeff: '+→', tcNote: 'HBM 採購量與 AI 伺服器出貨高度連動', price: '298.0', change: '+2.9%', changeDir: 'up', pe: '28x', mktcap: '5940', gm: '7.8%', yoy: '+72%', score: '62%', linkage: 62, rev: 58, ord: 65, sent: 63, events: [] }
     ]
   }
 };
@@ -1592,13 +1652,50 @@ function renderMap(tech, filterLayer) {
   const map = document.getElementById('chain-map');
 
   const layers = [
-    { key: 'upstream', label: '上游 (技術源頭)', cls: 'upstream', items: data.upstream, desc: '材料研發・精密設備・TGV 技術' },
-    { key: 'midstream', label: '中游 (製造核心)', cls: 'midstream', items: data.midstream, desc: '晶圓代工・先進封裝・載板製作' },
-    { key: 'downstream', label: '下游 (系統整合)', cls: 'downstream', items: data.downstream, desc: '伺服器組裝・系統設計・散熱' }
+    { key: 'upstream', label: '上游 (技術源頭)', cls: 'upstream', items: data.upstream, desc: '材料・設備・TGV 技術' },
+    { key: 'midstream', label: '中游 (製造核心)', cls: 'midstream', items: data.midstream, desc: '晶圓代工・先進封裝・整合' },
+    { key: 'downstream', label: '下游 (系統整合)', cls: 'downstream', items: data.downstream, desc: '伺服器組裝・CSP・散熱' }
   ];
 
+  const riskConfig = {
+    high:   { icon: '⚠', label: '高風險', cls: 'high' },
+    medium: { icon: '◈', label: '中風險', cls: 'medium' },
+    low:    { icon: '●', label: '低風險', cls: 'low' },
+  };
+  const bizConfig = {
+    csp:        { label: 'CSP 直供', cls: 'csp' },
+    odm:        { label: 'ODM 組裝', cls: 'odm' },
+    integrated: { label: '封裝整合', cls: 'integrated' },
+  };
+  const sublabelConfig = {
+    material:  { label: '關鍵材料', cls: 'material' },
+    equipment: { label: '製程設備', cls: 'equipment' },
+  };
+
   map.innerHTML = layers.map(layer => {
-    const items = filterLayer && filterLayer !== layer.key ? [] : layer.items;
+    const items = filterLayer && filterLayer !== layer.key ? [] : (layer.items || []);
+
+    // 上游：按 sublayer 分組插入分隔標題
+    let nodeHtml = '';
+    if (items.length === 0) {
+      nodeHtml = `<div style="font-size:11px;color:var(--text3);padding:8px;font-family:'IBM Plex Mono',monospace;">（此層無標的）</div>`;
+    } else if (layer.key === 'upstream') {
+      // 先出設備，再出材料
+      ['equipment','material'].forEach(slKey => {
+        const slItems = items.filter(s => s.sublayer === slKey || (!s.sublayer && slKey === 'equipment'));
+        if (slItems.length === 0) return;
+        const slCfg = sublabelConfig[slKey];
+        nodeHtml += `
+          <div class="sublayer-divider">
+            <span class="sublayer-label ${slCfg.cls}">${slCfg.label}</span>
+            <div class="sublayer-divider-line"></div>
+          </div>`;
+        nodeHtml += slItems.map(s => renderNode(s, tech, riskConfig, bizConfig)).join('');
+      });
+    } else {
+      nodeHtml = items.map(s => renderNode(s, tech, riskConfig, bizConfig)).join('');
+    }
+
     return `
     <div class="chain-layer">
       <div class="layer-header">
@@ -1606,26 +1703,46 @@ function renderMap(tech, filterLayer) {
         <span class="layer-name">${layer.label.split('(')[0].trim()}</span>
       </div>
       <div class="layer-desc">${layer.desc}</div>
-      <div class="node-list">
-        ${items.length === 0 ? `<div style="font-size:11px;color:var(--text3);padding:8px;font-family:'IBM Plex Mono',monospace;">（此層無標的）</div>` :
-        items.map(s => `
-          <div class="supply-node" onclick="(window._showStockMobileAware||showStock)('${s.code}', '${tech}')">
-            <div class="node-top">
-              <div class="node-name">${s.name}</div>
-              <div class="node-code">${s.code}</div>
-            </div>
-            <div class="node-role">${s.role}</div>
-            <div class="node-tags">${s.tags.map(t => `<span class="node-tag">${t}</span>`).join('')}</div>
-            <div class="linkage-bar">
-              <div class="linkage-label">關聯度</div>
-              <div class="linkage-track"><div class="linkage-fill" style="width:${s.linkage}%"></div></div>
-              <div class="linkage-pct ${s.linkage >= 80 ? 'up' : s.linkage >= 60 ? '' : 'down'}" style="color:${s.linkage>=80?'var(--green)':s.linkage>=60?'var(--accent)':'var(--text2)'}">${s.score}</div>
-            </div>
-          </div>
-        `).join('')}
-      </div>
+      <div class="node-list">${nodeHtml}</div>
     </div>`;
   }).join('');
+}
+
+function renderNode(s, tech, riskConfig, bizConfig) {
+  const risk = riskConfig[s.risk] || riskConfig.low;
+  const biz  = s.bizModel ? bizConfig[s.bizModel] : null;
+  const tcColor = s.transitionCoeff && s.transitionCoeff.includes('↑↑') ? 'var(--green)'
+    : s.transitionCoeff && s.transitionCoeff.includes('↑') ? 'var(--accent)'
+    : s.transitionCoeff && s.transitionCoeff.includes('↓') ? 'var(--red)' : 'var(--text3)';
+
+  const tagClass = s.sublayer === 'material' ? 'material-tag' : '';
+
+  return `
+  <div class="supply-node" onclick="(window._showStockMobileAware||showStock)('${s.code}', '${tech}')">
+    <div class="node-top">
+      <div class="node-name">
+        ${s.name}
+        ${biz ? `<span class="biz-badge ${biz.cls}">${biz.label}</span>` : ''}
+      </div>
+      <div class="node-code">${s.code}</div>
+    </div>
+    <div class="node-role">${s.role}</div>
+    <div class="node-tags">${s.tags.map(t => `<span class="node-tag ${tagClass}">${t}</span>`).join('')}</div>
+    <div class="linkage-bar">
+      <div class="linkage-label">關聯度</div>
+      <div class="linkage-track"><div class="linkage-fill" style="width:${s.linkage}%"></div></div>
+      <div class="linkage-pct" style="color:${s.linkage>=80?'var(--green)':s.linkage>=60?'var(--accent)':'var(--text2)'}">${s.score}</div>
+    </div>
+    ${s.transitionCoeff ? `
+    <div class="transition-coeff">
+      <span class="tc-label">轉型係數</span>
+      <span class="tc-value" style="color:${tcColor}">${s.transitionCoeff}</span>
+      <span class="tc-label" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.tcNote || ''}</span>
+    </div>` : ''}
+    <div style="display:flex;align-items:center;gap:6px;margin-top:5px">
+      <span class="risk-badge ${risk.cls}"><span class="risk-dot"></span>${risk.icon} ${s.riskNote || risk.label}</span>
+    </div>
+  </div>`;
 }
 
 // ─── TABLE RENDER ────────────────────────────────────────────────────────────
@@ -1641,15 +1758,17 @@ function renderTable(tech) {
     const items = data[layer.key] || [];
     items.forEach(s => {
       const lp = s.linkage >= 80 ? 'lp-high' : s.linkage >= 60 ? 'lp-mid' : 'lp-low';
-      rows += `<tr onclick="'(window._showStockMobileAware||showStock)('${s.code}', '${tech}')">
+      const riskColor = s.risk === 'high' ? 'var(--red)' : s.risk === 'medium' ? 'var(--gold)' : 'var(--green)';
+      const bizLabel = s.bizModel === 'csp' ? ' · CSP直供' : s.bizModel === 'integrated' ? ' · 封裝整合' : '';
+      rows += `<tr onclick="(window._showStockMobileAware||showStock)('${s.code}', '${tech}')">
         <td><span class="layer-dot ${layer.dot}"></span> ${layer.label}</td>
         <td class="td-code">${s.code}</td>
-        <td class="td-name">${s.name}</td>
+        <td class="td-name">${s.name}<span style="font-size:9px;color:var(--text3)">${bizLabel}</span></td>
         <td class="td-price">NT$ ${s.price}</td>
         <td class="td-change ${s.changeDir}">${s.change}</td>
         <td class="td-pe">${s.pe}</td>
         <td><span class="linkage-pill ${lp}">${s.score}</span></td>
-        <td style="font-size:11px;color:var(--text2)">${s.role}</td>
+        <td style="font-size:10px;color:var(--text2)">${s.role} <span style="color:${riskColor};font-size:9px">${s.risk === 'high' ? '⚠高風險' : s.risk === 'medium' ? '◈中風險' : ''}</span></td>
       </tr>`;
     });
   });
@@ -1754,6 +1873,29 @@ async function showStock(code, tech) {
   document.getElementById('src-goodinfo').textContent = '◌ 財報：載入中…';
   document.getElementById('src-goodinfo').style.color = 'var(--text3)';
   document.getElementById('live-price-banner').style.display = 'none';
+
+  // ── 風險指標 + 轉型係數 ──
+  const riskSection = document.getElementById('d-risk-section');
+  const riskBadge = document.getElementById('d-risk-badge');
+  const tcSection = document.getElementById('d-tc-section');
+  if (riskSection && stock.risk) {
+    riskSection.style.display = 'flex';
+    const riskMap = { high: { cls: 'high', icon: '⚠', label: '高技術風險' }, medium: { cls: 'medium', icon: '◈', label: '中風險' }, low: { cls: 'low', icon: '●', label: '低風險' } };
+    const r = riskMap[stock.risk] || riskMap.low;
+    riskBadge.className = `risk-badge ${r.cls}`;
+    riskBadge.innerHTML = `<span class="risk-dot"></span>${r.icon} ${stock.riskNote || r.label}`;
+    if (tcSection && stock.transitionCoeff) {
+      const tcColor = stock.transitionCoeff.includes('↑↑') ? 'var(--green)' : stock.transitionCoeff.includes('↑') ? 'var(--accent)' : stock.transitionCoeff.includes('↓') ? 'var(--red)' : 'var(--text3)';
+      tcSection.innerHTML = `轉型係數 <span style="color:${tcColor};font-weight:600">${stock.transitionCoeff}</span>　${stock.tcNote || ''}`;
+    } else if (tcSection) { tcSection.textContent = ''; }
+  } else if (riskSection) { riskSection.style.display = 'none'; }
+
+  // ── 資料時效性指示器 ──
+  const freshnessEl = document.getElementById('src-freshness');
+  if (freshnessEl && stock.dataFreshness) {
+    freshnessEl.textContent = `📅 ${stock.dataFreshness}`;
+    freshnessEl.title = '財報資料來源時效';
+  } else if (freshnessEl) { freshnessEl.textContent = ''; }
 
   // ── 非同步：即時行情 ──
   if (livePrice[code]) {
