@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
-  <title>ChainScope · AI 供應鏈股票追蹤</title>
+<title>ChainScope · AI 供應鏈股票追蹤</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -1501,6 +1499,7 @@ async function refreshAllPrices(forceBust = false) {
       const mLabel = document.getElementById('m-last-update');
       if (mLabel) mLabel.textContent = `上次更新：${timeStr}`;
       refreshMapNodes();
+      if (currentView === 'table') refreshTableRows();
       if (selectedStock) updateLivePriceUI(selectedStock.code);
     }
   } catch(e) {
@@ -1653,7 +1652,7 @@ function switchView(view, el) {
   document.getElementById('view-table').style.display = view === 'table' ? 'block' : 'none';
   document.getElementById('view-roadmap').style.display = view === 'roadmap' ? 'block' : 'none';
   if (view === 'map') renderMap(currentTech);
-  else if (view === 'table') renderTable(currentTech);
+  else if (view === 'table') { renderTable(currentTech); refreshTableRows(); }
   else if (view === 'roadmap') renderRoadmap(currentTech);
 }
 
@@ -1768,15 +1767,19 @@ function renderTable(tech) {
   layers.forEach(layer => {
     const items = data[layer.key] || [];
     items.forEach(s => {
+      const live = livePrice[s.code];
+      const price     = live ? `NT$ ${live.price}` : `NT$ ${s.price}`;
+      const change    = live ? live.changePct : s.change;
+      const changeDir = live ? live.changeDir  : s.changeDir;
       const lp = s.linkage >= 80 ? 'lp-high' : s.linkage >= 60 ? 'lp-mid' : 'lp-low';
       const riskColor = s.risk === 'high' ? 'var(--red)' : s.risk === 'medium' ? 'var(--gold)' : 'var(--green)';
       const bizLabel = s.bizModel === 'csp' ? ' · CSP直供' : s.bizModel === 'integrated' ? ' · 封裝整合' : '';
-      rows += `<tr onclick="(window._showStockMobileAware||showStock)('${s.code}', '${tech}')">
+      rows += `<tr data-code="${s.code}" onclick="(window._showStockMobileAware||showStock)('${s.code}', '${tech}')">
         <td><span class="layer-dot ${layer.dot}"></span> ${layer.label}</td>
         <td class="td-code">${s.code}</td>
         <td class="td-name">${s.name}<span style="font-size:9px;color:var(--text3)">${bizLabel}</span></td>
-        <td class="td-price">NT$ ${s.price}</td>
-        <td class="td-change ${s.changeDir}">${s.change}</td>
+        <td class="td-price" data-price="${s.code}">${price}</td>
+        <td class="td-change ${changeDir}" data-change="${s.code}">${change}</td>
         <td class="td-pe">${s.pe}</td>
         <td><span class="linkage-pill ${lp}">${s.score}</span></td>
         <td style="font-size:10px;color:var(--text2)">${s.role} <span style="color:${riskColor};font-size:9px">${s.risk === 'high' ? '⚠高風險' : s.risk === 'medium' ? '◈中風險' : ''}</span></td>
@@ -1784,6 +1787,23 @@ function renderTable(tech) {
     });
   });
   document.getElementById('stock-tbody').innerHTML = rows;
+}
+
+// Table view 即時行情更新（不重新渲染整個表格，只更新價格欄位）
+function refreshTableRows() {
+  document.querySelectorAll('[data-price]').forEach(el => {
+    const code = el.getAttribute('data-price');
+    const live = livePrice[code];
+    if (!live || live.price === '0.00') return;
+    el.textContent = `NT$ ${live.price}`;
+  });
+  document.querySelectorAll('[data-change]').forEach(el => {
+    const code = el.getAttribute('data-change');
+    const live = livePrice[code];
+    if (!live) return;
+    el.textContent = live.changePct;
+    el.className = `td-change ${live.changeDir}`;
+  });
 }
 
 // ─── ROADMAP RENDER ──────────────────────────────────────────────────────────
