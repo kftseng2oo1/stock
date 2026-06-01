@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChainScope · AI 供應鏈股票追蹤</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #070b12;
+  --bg2: #0c1220;
+  --bg3: #101828;
+  --panel: #111c2e;
+  --panel2: #162035;
+  --border: #1e3050;
+  --border2: #243a5e;
+  --accent: #00d4ff;
+  --accent2: #0099cc;
+  --gold: #f0b429;
+  --green: #00e676;
+  --red: #ff4d6d;
+  --purple: #b57bee;
+  --text: #c8daea;
+  --text2: #7a9bc0;
+  --text3: #3d5a80;
+  --glow: rgba(0, 212, 255, 0.15);
+  --glow2: rgba(0, 212, 255, 0.05);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Grid background */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── HEADER ─── */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(7,11,18,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex; align-items: center; gap: 24px;
+  height: 56px;
+}
+
+.logo {
+  font-family: 'Orbitron', monospace;
+  font-size: 18px; font-weight: 900;
+  color: var(--accent);
+  letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(0,212,255,0.5);
+  white-space: nowrap;
+}
+.logo span { color: var(--gold); }
+
+.header-subtitle {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; color: var(--text3);
+  letter-spacing: 1px;
+}
+
+.header-right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 16px;
+}
+
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; color: var(--green);
+}
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ─── LAYOUT ─── */
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr 320px;
+  grid-template-rows: auto 1fr;
+  gap: 0;
+  height: calc(100vh - 56px);
+  position: relative; z-index: 1;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  border-right: 1px solid var(--border);
+  background: var(--bg2);
+  overflow-y: auto;
+  padding: 16px 0;
+}
+
+.sidebar-section { margin-bottom: 8px; }
+
+.sidebar-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; font-weight: 600;
+  color: var(--text3);
+  letter-spacing: 2px;
+  padding: 8px 16px 6px;
+  text-transform: uppercase;
+}
+
+.tech-btn {
+  width: 100%;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  background: none; border: none;
+  color: var(--text2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  position: relative;
+}
+.tech-btn::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: transparent;
+  transition: all 0.2s;
+}
+.tech-btn:hover { color: var(--accent); background: var(--glow2); }
+.tech-btn.active {
+  color: var(--accent);
+  background: linear-gradient(90deg, rgba(0,212,255,0.08), transparent);
+}
+.tech-btn.active::before { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+.tech-icon {
+  width: 28px; height: 28px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.tech-btn.active .tech-icon { border-color: var(--accent2); background: rgba(0,212,255,0.1); }
+
+.tech-count {
+  margin-left: auto;
+  font-size: 10px;
+  background: var(--border);
+  color: var(--text3);
+  padding: 1px 6px; border-radius: 10px;
+}
+.tech-btn.active .tech-count { background: rgba(0,212,255,0.2); color: var(--accent); }
+
+.sidebar-divider {
+  height: 1px; background: var(--border);
+  margin: 12px 16px;
+}
+
+/* ─── MAIN CONTENT ─── */
+.main {
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+  background: var(--bg);
+}
+
+/* ─── TOP BAR ─── */
+.main-topbar {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px;
+  background: var(--bg2);
+  flex-wrap: wrap;
+}
+
+.topic-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 14px; font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+
+.view-tabs {
+  display: flex; gap: 4px;
+  margin-left: auto;
+}
+
+.view-tab {
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.view-tab:hover { border-color: var(--accent2); color: var(--accent); }
+.view-tab.active {
+  background: rgba(0,212,255,0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ─── MAP VIEW ─── */
+#view-map { padding: 24px; }
+
+.map-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.supply-chain-map {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chain-layer {
+  background: var(--bg2);
+  padding: 20px 16px;
+}
+
+.layer-header {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 16px;
+}
+
+.layer-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 2px;
+  padding: 3px 10px; border-radius: 3px;
+}
+.layer-tag.upstream { background: rgba(181,123,238,0.15); color: var(--purple); border: 1px solid rgba(181,123,238,0.3); }
+.layer-tag.midstream { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.3); }
+.layer-tag.downstream { background: rgba(240,180,41,0.1); color: var(--gold); border: 1px solid rgba(240,180,41,0.3); }
+
+.layer-name {
+  font-size: 12px; font-weight: 700;
+  color: var(--text);
+}
+
+.layer-desc {
+  font-size: 11px; color: var(--text3);
+  margin-bottom: 14px;
+  line-height: 1.5;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.node-list { display: flex; flex-direction: column; gap: 6px; }
+
+.supply-node {
+  padding: 10px 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.supply-node::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.03));
+  opacity: 0; transition: opacity 0.2s;
+}
+.supply-node:hover { border-color: var(--border2); transform: translateX(2px); }
+.supply-node:hover::after { opacity: 1; }
+.supply-node.selected { border-color: var(--accent); background: rgba(0,212,255,0.05); }
+
+.node-top { display: flex; align-items: center; justify-content: space-between; }
+
+.node-name {
+  font-size: 13px; font-weight: 500;
+  color: var(--text);
+}
+.node-code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; color: var(--text3);
+}
+
+.node-role {
+  font-size: 11px; color: var(--text2);
+  margin-top: 3px;
+}
+
+.node-tags { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+.node-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  padding: 2px 6px; border-radius: 3px;
+  background: rgba(0,212,255,0.08);
+  color: var(--accent2);
+  border: 1px solid rgba(0,212,255,0.15);
+}
+
+.linkage-bar {
+  margin-top: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.linkage-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; color: var(--text3);
+  white-space: nowrap;
+}
+.linkage-track {
+  flex: 1; height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.linkage-fill {
+  height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  transition: width 0.5s ease;
+}
+.linkage-pct {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+/* ─── ROADMAP VIEW ─── */
+#view-roadmap { padding: 24px; display: none; }
+
+.roadmap-timeline {
+  position: relative;
+  padding-left: 32px;
+}
+.roadmap-timeline::before {
+  content: '';
+  position: absolute; left: 12px; top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--purple), var(--accent), var(--gold));
+}
+
+.roadmap-item {
+  position: relative;
+  margin-bottom: 32px;
+  animation: fadeIn 0.4s ease both;
+}
+@keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: none; } }
+
+.roadmap-dot {
+  position: absolute; left: -26px; top: 6px;
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: var(--bg);
+  box-shadow: 0 0 12px rgba(0,212,255,0.4);
+}
+.roadmap-dot.past { border-color: var(--text3); box-shadow: none; background: var(--text3); }
+.roadmap-dot.future { border-color: var(--gold); box-shadow: 0 0 12px rgba(240,180,41,0.4); }
+
+.roadmap-year {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px; color: var(--accent);
+  letter-spacing: 2px; margin-bottom: 4px;
+}
+.roadmap-item.past .roadmap-year { color: var(--text3); }
+.roadmap-item.future .roadmap-year { color: var(--gold); }
+
+.roadmap-tech {
+  font-size: 16px; font-weight: 700;
+  color: var(--text); margin-bottom: 6px;
+}
+
+.roadmap-desc {
+  font-size: 12px; color: var(--text2);
+  line-height: 1.6; margin-bottom: 10px;
+}
+
+.roadmap-stocks {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.roadmap-stock-chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  cursor: pointer; transition: all 0.2s;
+}
+.roadmap-stock-chip:hover { border-color: var(--accent); }
+.rsc-code { font-family: 'IBM Plex Mono', monospace; color: var(--text3); }
+.rsc-name { color: var(--text); }
+.rsc-change { font-family: 'IBM Plex Mono', monospace; font-size: 10px; }
+
+/* ─── RIGHT PANEL ─── */
+.right-panel {
+  border-left: 1px solid var(--border);
+  background: var(--bg2);
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+
+.panel-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  color: var(--text2);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ─── STOCK DETAIL ─── */
+#stock-placeholder {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; color: var(--text3);
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  padding: 24px;
+}
+.placeholder-icon { font-size: 32px; opacity: 0.3; }
+
+#stock-detail { display: none; flex-direction: column; }
+
+.stock-hero {
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--bg3), var(--panel));
+}
+
+.stock-hero-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+
+.stock-company { font-size: 16px; font-weight: 700; color: var(--text); }
+.stock-code-large {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; color: var(--text3);
+  margin-top: 2px;
+}
+
+.stock-price-block { text-align: right; }
+.stock-price {
+  font-family: 'Orbitron', monospace;
+  font-size: 22px; font-weight: 700;
+  color: var(--text);
+}
+.stock-change {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; margin-top: 2px;
+}
+.up { color: var(--green); }
+.down { color: var(--red); }
+
+.stock-position-tags {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px;
+}
+.position-tag {
+  font-size: 10px;
+  padding: 3px 9px; border-radius: 3px;
+  background: rgba(0,212,255,0.08);
+  border: 1px solid rgba(0,212,255,0.2);
+  color: var(--accent);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* Metrics grid */
+.metrics-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1px; background: var(--border);
+  margin: 0;
+}
+.metric-cell {
+  background: var(--bg2);
+  padding: 12px 16px;
+}
+.metric-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; color: var(--text3);
+  letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.metric-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px; font-weight: 600;
+  color: var(--text);
+}
+.metric-value.highlight { color: var(--accent); }
+.metric-value.gold { color: var(--gold); }
+
+/* Linkage score big */
+.linkage-section {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.linkage-big-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: var(--text3); letter-spacing: 1px;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.linkage-big {
+  display: flex; align-items: center; gap: 12px;
+}
+.linkage-score-circle {
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 3px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 16px rgba(0,212,255,0.2);
+}
+.linkage-score-num {
+  font-family: 'Orbitron', monospace;
+  font-size: 14px; font-weight: 700;
+  color: var(--accent);
+}
+.linkage-breakdown { flex: 1; }
+.linkage-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.linkage-row-label { font-size: 11px; color: var(--text2); width: 80px; flex-shrink: 0; }
+.linkage-mini-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.linkage-mini-fill { height: 100%; border-radius: 2px; }
+.fill-revenue { background: var(--accent); }
+.fill-order { background: var(--gold); }
+.fill-sentiment { background: var(--green); }
+.linkage-row-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: var(--text2); width: 28px; text-align: right;
+}
+
+/* Events */
+.events-section { padding: 14px 18px; }
+.events-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: var(--text3); letter-spacing: 1px;
+  text-transform: uppercase; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.event-item {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background: var(--bg3);
+}
+.event-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.event-badge {
+  font-size: 9px; font-family: 'IBM Plex Mono', monospace;
+  padding: 2px 6px; border-radius: 2px; font-weight: 600;
+}
+.badge-pos { background: rgba(0,230,118,0.1); color: var(--green); border: 1px solid rgba(0,230,118,0.2); }
+.badge-neg { background: rgba(255,77,109,0.1); color: var(--red); border: 1px solid rgba(255,77,109,0.2); }
+.badge-neu { background: rgba(122,155,192,0.1); color: var(--text2); border: 1px solid rgba(122,155,192,0.2); }
+.event-date { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text3); }
+.event-text { font-size: 11px; color: var(--text2); line-height: 1.5; }
+.event-impact {
+  margin-top: 4px;
+  font-size: 10px; color: var(--accent);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* ─── AI QUERY BOX ─── */
+.ai-query-section {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding: 14px;
+}
+.ai-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; color: var(--text3); letter-spacing: 1px;
+  text-transform: uppercase; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.ai-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--purple); box-shadow: 0 0 8px var(--purple); animation: pulse 2s infinite; }
+.ai-input-row { display: flex; gap: 8px; }
+.ai-input {
+  flex: 1; background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px; padding: 8px 10px;
+  color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  outline: none; transition: border-color 0.2s;
+}
+.ai-input:focus { border-color: var(--accent2); }
+.ai-input::placeholder { color: var(--text3); }
+.ai-send {
+  padding: 8px 12px; border-radius: 4px;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid var(--accent2);
+  color: var(--accent);
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  cursor: pointer; transition: all 0.2s;
+}
+.ai-send:hover { background: rgba(0,212,255,0.2); }
+
+.ai-response {
+  margin-top: 10px; padding: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 11px; color: var(--text2);
+  line-height: 1.6;
+  display: none;
+  max-height: 140px; overflow-y: auto;
+}
+.ai-response.visible { display: block; }
+
+/* ─── TABLE VIEW ─── */
+#view-table { padding: 16px 24px; display: none; }
+
+.stock-table {
+  width: 100%; border-collapse: collapse;
+}
+.stock-table th {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: var(--text3);
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 8px 12px;
+  border-bottom: 2px solid var(--border);
+  text-align: left;
+}
+.stock-table td {
+  padding: 12px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  vertical-align: middle;
+}
+.stock-table tr:hover td { background: rgba(0,212,255,0.02); cursor: pointer; }
+
+.td-code { font-family: 'IBM Plex Mono', monospace; color: var(--text3); }
+.td-name { font-weight: 500; color: var(--text); }
+.td-price { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--text); }
+.td-change { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+.td-pe { font-family: 'IBM Plex Mono', monospace; color: var(--text2); }
+
+.linkage-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 10px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+}
+.lp-high { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.2); }
+.lp-mid { background: rgba(240,180,41,0.1); color: var(--gold); border: 1px solid rgba(240,180,41,0.2); }
+.lp-low { background: rgba(122,155,192,0.1); color: var(--text2); border: 1px solid rgba(122,155,192,0.2); }
+
+.layer-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  display: inline-block;
+}
+.dot-upstream { background: var(--purple); }
+.dot-midstream { background: var(--accent); }
+.dot-downstream { background: var(--gold); }
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ─── ANIMATIONS ─── */
+.supply-node { animation: nodeIn 0.3s ease both; }
+.supply-node:nth-child(1) { animation-delay: 0.05s; }
+.supply-node:nth-child(2) { animation-delay: 0.1s; }
+.supply-node:nth-child(3) { animation-delay: 0.15s; }
+.supply-node:nth-child(4) { animation-delay: 0.2s; }
+.supply-node:nth-child(5) { animation-delay: 0.25s; }
+@keyframes nodeIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: none; } }
+
+.stock-table tr { animation: nodeIn 0.25s ease both; }
+.stock-table tr:nth-child(1) { animation-delay: 0.05s; }
+.stock-table tr:nth-child(2) { animation-delay: 0.08s; }
+.stock-table tr:nth-child(3) { animation-delay: 0.11s; }
+.stock-table tr:nth-child(4) { animation-delay: 0.14s; }
+.stock-table tr:nth-child(5) { animation-delay: 0.17s; }
+.stock-table tr:nth-child(6) { animation-delay: 0.2s; }
+.stock-table tr:nth-child(7) { animation-delay: 0.23s; }
+.stock-table tr:nth-child(8) { animation-delay: 0.26s; }
+
+/* Scanning overlay effect */
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(400px); }
+}
+.scan-line {
+  position: fixed; top: 56px; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.4), transparent);
+  animation: scan 6s linear infinite;
+  pointer-events: none; z-index: 200;
+}
+</style>
+
+<!-- PWA Meta — auto-injected by PWA 打包神器 -->
+<meta name="application-name" content="股市探針">
+<meta name="description" content="股市探針應該概念">
+<meta name="theme-color" content="#1a73e8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="股市探針">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<script>if('serviceWorker'in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').then(function(r){console.log('[SW] registered:',r.scope)}).catch(function(e){console.warn('[SW] failed:',e)});});}</script>
+</head>
+<body>
+
+<div class="scan-line"></div>
+
+<!-- ─── HEADER ─── -->
+<header>
+  <div class="logo">CHAIN<span>SCOPE</span></div>
+  <div class="header-subtitle">AI 供應鏈股票追蹤系統 v2.1</div>
+  <div class="header-right">
+    <div style="display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3)">
+      <span id="last-update-label">上次更新：—</span>
+    </div>
+    <button onclick="refreshAllPrices()" id="refresh-btn" style="padding:5px 12px;border-radius:4px;border:1px solid var(--border);background:none;color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">
+      ↻ 刷新行情
+    </button>
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      LIVE · TSE/OTC
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">技術主題</div>
+      <button class="tech-btn active" onclick="selectTech('cowos')">
+        <div class="tech-icon">⬡</div>
+        CoWoS
+        <span class="tech-count">12</span>
+      </button>
+      <button class="tech-btn" onclick="selectTech('copos')">
+        <div class="tech-icon">◈</div>
+        CoPoS
+        <span class="tech-count">8</span>
+      </button>
+      <button class="tech-btn" onclick="selectTech('photonics')">
+        <div class="tech-icon">◎</div>
+        矽光子
+        <span class="tech-count">6</span>
+      </button>
+      <button class="tech-btn" onclick="selectTech('aiserver')">
+        <div class="tech-icon">▤</div>
+        AI 伺服器
+        <span class="tech-count">10</span>
+      </button>
+      <button class="tech-btn" onclick="selectTech('hbm')">
+        <div class="tech-icon">⬛</div>
+        HBM 記憶體
+        <span class="tech-count">7</span>
+      </button>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">快速篩選</div>
+      <button class="tech-btn" onclick="filterLayer('upstream')">
+        <div class="tech-icon" style="border-color:#6b46b0">🔬</div>
+        <span style="color:#b57bee">上游材料/設備</span>
+      </button>
+      <button class="tech-btn" onclick="filterLayer('midstream')">
+        <div class="tech-icon" style="border-color:#00d4ff">⚙️</div>
+        <span style="color:#00d4ff">中游製造代工</span>
+      </button>
+      <button class="tech-btn" onclick="filterLayer('downstream')">
+        <div class="tech-icon" style="border-color:#f0b429">🖥️</div>
+        <span style="color:#f0b429">下游系統整合</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN ─── -->
+  <main class="main">
+    <div class="main-topbar">
+      <div>
+        <div class="topic-title" id="topic-title">CoWoS 先進封裝供應鏈</div>
+      </div>
+      <div class="view-tabs">
+        <button class="view-tab active" onclick="switchView('map', this)">產業地圖</button>
+        <button class="view-tab" onclick="switchView('table', this)">股票列表</button>
+        <button class="view-tab" onclick="switchView('roadmap', this)">技術路線圖</button>
+      </div>
+    </div>
+
+    <!-- MAP VIEW -->
+    <div id="view-map">
+      <div class="map-title">▸ 供應鏈結構圖 · 點擊節點查看個股詳情</div>
+      <div class="supply-chain-map" id="chain-map">
+        <!-- Dynamically rendered -->
+      </div>
+    </div>
+
+    <!-- TABLE VIEW -->
+    <div id="view-table">
+      <table class="stock-table" id="stock-table-el">
+        <thead>
+          <tr>
+            <th>層級</th>
+            <th>代號</th>
+            <th>公司</th>
+            <th>股價</th>
+            <th>漲跌幅</th>
+            <th>本益比</th>
+            <th>關聯度</th>
+            <th>供應鏈角色</th>
+          </tr>
+        </thead>
+        <tbody id="stock-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- ROADMAP VIEW -->
+    <div id="view-roadmap">
+      <div class="roadmap-timeline" id="roadmap-content"></div>
+    </div>
+  </main>
+
+  <!-- ─── RIGHT PANEL ─── -->
+  <aside class="right-panel">
+    <div class="panel-header">
+      <div class="panel-title">個股詳情</div>
+    </div>
+
+    <div id="stock-placeholder">
+      <div class="placeholder-icon">◎</div>
+      <div>點擊左側節點</div>
+      <div style="font-size:10px; color:var(--text3)">查看完整供應鏈分析</div>
+    </div>
+
+    <div id="stock-detail">
+      <div class="stock-hero">
+        <div class="stock-hero-top">
+          <div>
+            <div class="stock-company" id="d-name">—</div>
+            <div class="stock-code-large" id="d-code">—</div>
+          </div>
+          <div class="stock-price-block">
+            <div class="stock-price" id="d-price">—</div>
+            <div class="stock-change" id="d-change">—</div>
+          </div>
+        </div>
+        <div class="stock-position-tags" id="d-tags"></div>
+      </div>
+
+      <div id="live-price-banner" style="display:none;padding:8px 16px;background:rgba(0,212,255,0.06);border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-size:11px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="color:var(--text3)">即時</span>
+        <span style="color:var(--text2)">開盤 <span id="d-open" style="color:var(--text)">—</span></span>
+        <span style="color:var(--green)">最高 <span id="d-high">—</span></span>
+        <span style="color:var(--red)">最低 <span id="d-low">—</span></span>
+        <span style="color:var(--text2)">昨收 <span id="d-prev">—</span></span>
+        <span style="color:var(--text2)">量 <span id="d-vol">—</span> 張</span>
+        <span style="color:var(--text3);margin-left:auto" id="d-time">—</span>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-cell">
+          <div class="metric-label">本益比 P/E</div>
+          <div class="metric-value highlight" id="d-pe">—</div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-label">市值 (億)</div>
+          <div class="metric-value" id="d-mktcap">—</div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-label">毛利率</div>
+          <div class="metric-value gold" id="d-gm">—</div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-label">月營收 YoY</div>
+          <div class="metric-value" id="d-yoy">—</div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-label">營業利益率</div>
+          <div class="metric-value" id="d-opmargin">—</div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-label">ROE</div>
+          <div class="metric-value highlight" id="d-roe">—</div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-label">外資持股</div>
+          <div class="metric-value" id="d-foreign">—</div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-label">殖利率</div>
+          <div class="metric-value gold" id="d-yield">—</div>
+        </div>
+      </div>
+
+      <!-- Data source badge -->
+      <div style="padding:6px 14px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);border-bottom:1px solid var(--border);display:flex;gap:12px">
+        <span id="src-twse">◌ 行情：—</span>
+        <span id="src-goodinfo">◌ 財報：—</span>
+      </div>
+
+      <div class="linkage-section">
+        <div class="linkage-big-label">◈ 供應鏈關聯度分析 (Linkage Score)</div>
+        <div class="linkage-big">
+          <div class="linkage-score-circle">
+            <div class="linkage-score-num" id="d-score">—</div>
+          </div>
+          <div class="linkage-breakdown">
+            <div class="linkage-row">
+              <div class="linkage-row-label">營收貢獻</div>
+              <div class="linkage-mini-track"><div class="linkage-mini-fill fill-revenue" id="d-bar-rev" style="width:0%"></div></div>
+              <div class="linkage-row-val" id="d-val-rev">—</div>
+            </div>
+            <div class="linkage-row">
+              <div class="linkage-row-label">訂單能見度</div>
+              <div class="linkage-mini-track"><div class="linkage-mini-fill fill-order" id="d-bar-ord" style="width:0%"></div></div>
+              <div class="linkage-row-val" id="d-val-ord">—</div>
+            </div>
+            <div class="linkage-row">
+              <div class="linkage-row-label">新聞情緒</div>
+              <div class="linkage-mini-track"><div class="linkage-mini-fill fill-sentiment" id="d-bar-sent" style="width:0%"></div></div>
+              <div class="linkage-row-val" id="d-val-sent">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="events-section">
+        <div class="events-title">
+          <div class="live-dot"></div>
+          事件聯動監控 (Event Trigger)
+        </div>
+        <div id="d-events"></div>
+      </div>
+    </div>
+
+    <!-- AI QUERY -->
+    <div class="ai-query-section">
+      <div class="ai-label"><div class="ai-dot"></div>AI 供應鏈問答</div>
+      <div class="ai-input-row">
+        <input class="ai-input" id="ai-input" placeholder="問：CoWoS 月產能影響哪些廠商？" />
+        <button class="ai-send" onclick="askAI()">▶</button>
+      </div>
+      <div class="ai-response" id="ai-response"></div>
+    </div>
+  </aside>
+</div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+// ⚠️ 已指向正確 Worker（Twinklehub v9.0）
+const WORKER_BASE = 'https://twinklehub.kftseng2oo1.workers.dev';
+const TWSE_ENDPOINT   = `${WORKER_BASE}/twse-proxy`;
+const GOODINFO_ENDPOINT = `${WORKER_BASE}/goodinfo-proxy`;
+
+// 自動刷新間隔（毫秒）：交易時間內 60 秒刷一次
+const AUTO_REFRESH_MS = 60000;
+
+// ─── LIVE DATA STATE ─────────────────────────────────────────────────────────
+const livePrice  = {};   // { '2330': { price, change, changePct, ... } }
+const liveFundamentals = {}; // { '2330': { pe, grossMargin, roe, ... } }
+let refreshTimer = null;
+let isLoading = false;
+
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const TECH_DATA = {
+  cowos: {
+    title: 'CoWoS 先進封裝供應鏈',
+    upstream: [
+      { code: '3515', name: '鈦昇', role: 'CoWoS 濕製程設備', tags: ['晶圓清洗設備', 'CoWoS 認證'], price: '248.5', change: '+3.2%', changeDir: 'up', pe: '42x', mktcap: '326', gm: '38%', yoy: '+67%', score: '87%', linkage: 87, rev: 72, ord: 88, sent: 91, events: [
+        { date: '2025-06-10', type: 'pos', text: '法說會透露 CoWoS 設備新訂單超出預期，Q3 交機量將達 180 台', impact: '→ CoWoS 月產能擴張直接受益' },
+        { date: '2025-05-28', type: 'neu', text: '公告董事會通過現金增資案，募資用於擴廠', impact: '→ 稀釋 EPS 約 4%，惟長期產能看增' }
+      ]},
+      { code: '3092', name: '弘塑', role: '先進封裝製程設備', tags: ['單片清洗機', 'ALD 設備'], price: '412.0', change: '+1.8%', changeDir: 'up', pe: '35x', mktcap: '285', gm: '42%', yoy: '+48%', score: '74%', linkage: 74, rev: 65, ord: 72, sent: 85, events: [
+        { date: '2025-06-08', type: 'pos', text: '取得台積電 CoWoS-L 製程驗證資格，進入量產供應', impact: '→ 正式成為 CoWoS-L 設備供應商' }
+      ]},
+      { code: '6277', name: '正達', role: '玻璃基板材料先驅', tags: ['TGV 玻璃基板', '矽通孔替代'], price: '186.0', change: '+7.1%', changeDir: 'up', pe: '58x', mktcap: '410', gm: '31%', yoy: '+120%', score: '92%', linkage: 92, rev: 88, ord: 95, sent: 93, events: [
+        { date: '2025-06-12', type: 'pos', text: '公告玻璃基板首批量產出貨，客戶為 AI 晶片大廠', impact: '→ CoPoS 玻璃基板技術落地，關聯度大幅提升' },
+        { date: '2025-06-01', type: 'neu', text: '日本旭硝子入股 12%，技術合作深化', impact: '→ 原材料供應鏈穩定度提升' }
+      ]},
+      { code: '3583', name: '辛耘', role: '晶圓研磨暨清洗設備', tags: ['CMP 製程', '薄晶圓處理'], price: '167.5', change: '-0.9%', changeDir: 'down', pe: '28x', mktcap: '189', gm: '35%', yoy: '+32%', score: '61%', linkage: 61, rev: 55, ord: 60, sent: 68, events: [
+        { date: '2025-05-30', type: 'neg', text: '競爭對手 DNS 推出新型 CMP 設備，規格略勝一籌', impact: '→ 短期市占率壓力，CoWoS 關聯度小幅下修' }
+      ]}
+    ],
+    midstream: [
+      { code: '2330', name: '台積電', role: 'CoWoS 核心代工平台', tags: ['CoWoS-S', 'CoWoS-L', 'CoWoS-R', 'SoIC'], price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '99%', linkage: 99, rev: 99, ord: 99, sent: 97, events: [
+        { date: '2025-06-11', type: 'pos', text: 'CoWoS 月產能突破 80K wafer，年底目標上調至 120K', impact: '→ 帶動整條上游設備材料鏈受惠' }
+      ]},
+      { code: '2311', name: '日月光', role: 'OSAT 先進封裝龍頭', tags: ['SiP', 'Fan-out', 'CoWoS 外包'], price: '145.5', change: '+0.7%', changeDir: 'up', pe: '18x', mktcap: '3580', gm: '21%', yoy: '+28%', score: '78%', linkage: 78, rev: 68, ord: 82, sent: 84, events: [
+        { date: '2025-06-05', type: 'pos', text: '承接 AMD MI400 系列 CoWoS 外包訂單', impact: '→ AI GPU 封裝需求擴大，OSAT 受益明確' }
+      ]},
+      { code: '3037', name: '欣興', role: 'ABF 載板/CoWoS 基板', tags: ['ABF 載板', 'CoWoS 有機基板'], price: '102.0', change: '-1.5%', changeDir: 'down', pe: '15x', mktcap: '815', gm: '18%', yoy: '+12%', score: '69%', linkage: 69, rev: 60, ord: 68, sent: 79, events: [
+        { date: '2025-05-25', type: 'neg', text: '因玻璃基板技術崛起，ABF 載板長期需求存在替代風險', impact: '→ 建議關注 CoPoS 玻璃基板對 ABF 的影響時程' }
+      ]}
+    ],
+    downstream: [
+      { code: '3231', name: '緯創', role: 'AI 伺服器 ODM', tags: ['GB200 NVL72', 'AI 機架組裝'], price: '112.0', change: '+4.3%', changeDir: 'up', pe: '22x', mktcap: '2950', gm: '8.2%', yoy: '+89%', score: '71%', linkage: 71, rev: 78, ord: 85, sent: 50, events: [
+        { date: '2025-06-09', type: 'pos', text: '取得輝達 GB300 NVL72 優先量產資格', impact: '→ H2 AI 伺服器出貨量大幅上修' }
+      ]},
+      { code: '2382', name: '廣達', role: 'AI 伺服器 ODM 龍頭', tags: ['DGX H100', 'GB200', '散熱液冷'], price: '298.0', change: '+2.9%', changeDir: 'up', pe: '28x', mktcap: '5940', gm: '7.8%', yoy: '+72%', score: '68%', linkage: 68, rev: 72, ord: 80, sent: 52, events: [
+        { date: '2025-06-07', type: 'pos', text: '微軟 Azure 新增 5 億美元 AI 伺服器採購，廣達為主要受益', impact: '→ AI 伺服器佔營收比重提升至 45%' }
+      ]},
+      { code: '6669', name: '緯穎', role: '超高密度 AI 伺服器', tags: ['液冷機架', 'CSP 直供'], price: '1850.0', change: '+5.2%', changeDir: 'up', pe: '38x', mktcap: '1380', gm: '11.2%', yoy: '+108%', score: '65%', linkage: 65, rev: 70, ord: 78, sent: 47, events: [
+        { date: '2025-06-10', type: 'pos', text: '取得 Meta 液冷 AI 伺服器大單，Q3 出貨量翻倍', impact: '→ CSP 直供模式鞏固，毛利率有望維持高位' }
+      ]}
+    ]
+  },
+  copos: {
+    title: 'CoPoS 玻璃基板供應鏈',
+    upstream: [
+      { code: '6277', name: '正達', role: '玻璃基板核心供應商', tags: ['TGV 技術', 'CoPoS 材料'], price: '186.0', change: '+7.1%', changeDir: 'up', pe: '58x', mktcap: '410', gm: '31%', yoy: '+120%', score: '95%', linkage: 95, rev: 90, ord: 98, sent: 97, events: [
+        { date: '2025-06-12', type: 'pos', text: '玻璃基板首批量產出貨，進入 CoPoS 供應鏈核心', impact: '→ CoPoS 供應鏈最直接受益標的' }
+      ]},
+      { code: '6124', name: '群創', role: '玻璃基板製造轉型', tags: ['玻璃面板加工', 'TGV 鑽孔'], price: '14.8', change: '+0.7%', changeDir: 'up', pe: '12x', mktcap: '412', gm: '9%', yoy: '+8%', score: '45%', linkage: 45, rev: 35, ord: 48, sent: 52, events: [
+        { date: '2025-05-20', type: 'neu', text: '宣布與正達合作開發玻璃基板加工產線', impact: '→ 轉型 CoPoS 供應商，關聯度持續上升中' }
+      ]}
+    ],
+    midstream: [
+      { code: '2330', name: '台積電', role: 'CoPoS 製程研發主導', tags: ['CoPoS 量產準備', '3D IC'], price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '85%', linkage: 85, rev: 80, ord: 90, sent: 85, events: [
+        { date: '2025-06-01', type: 'pos', text: 'CoPoS 製程預計 2026 Q2 進入量產階段', impact: '→ 玻璃基板供應鏈量產時程明朗化' }
+      ]}
+    ],
+    downstream: [
+      { code: '3231', name: '緯創', role: 'CoPoS 世代 AI 伺服器準備', tags: ['次世代 AI 機架', 'CoPoS 相容設計'], price: '112.0', change: '+4.3%', changeDir: 'up', pe: '22x', mktcap: '2950', gm: '8.2%', yoy: '+89%', score: '55%', linkage: 55, rev: 50, ord: 58, sent: 57, events: [] }
+    ]
+  },
+  photonics: {
+    title: '矽光子供應鏈',
+    upstream: [
+      { code: '3533', name: '嘉聯益', role: '矽光子封裝載板', tags: ['光電基板', 'CPO 封裝'], price: '78.5', change: '+2.2%', changeDir: 'up', pe: '32x', mktcap: '245', gm: '28%', yoy: '+45%', score: '72%', linkage: 72, rev: 65, ord: 75, sent: 76, events: [
+        { date: '2025-06-08', type: 'pos', text: '取得英特爾矽光子模組認證，進入 CPO 供應鏈', impact: '→ 矽光子封裝需求浮現，關聯度顯著提升' }
+      ]}
+    ],
+    midstream: [
+      { code: '2330', name: '台積電', role: '矽光子晶圓代工平台', tags: ['SiPh', 'Photonic IC'], price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '70%', linkage: 70, rev: 65, ord: 75, sent: 70, events: [] }
+    ],
+    downstream: [
+      { code: '2317', name: '鴻海', role: '光通訊 AI 伺服器系統整合', tags: ['CPO 散熱系統', 'AI 伺服器'], price: '182.5', change: '+1.4%', changeDir: 'up', pe: '14x', mktcap: '25200', gm: '6.1%', yoy: '+22%', score: '48%', linkage: 48, rev: 40, ord: 52, sent: 52, events: [] }
+    ]
+  },
+  aiserver: {
+    title: 'AI 伺服器供應鏈',
+    upstream: [
+      { code: '2409', name: '友達', role: '伺服器面板/顯示模組', tags: ['伺服器 LCD', '工業面板'], price: '16.5', change: '-0.6%', changeDir: 'down', pe: '9x', mktcap: '386', gm: '11%', yoy: '+5%', score: '28%', linkage: 28, rev: 20, ord: 30, sent: 34, events: [] },
+      { code: '2308', name: '台達電', role: '伺服器電源/散熱解決方案', tags: ['電源供應器', 'CRPS', '液冷模組'], price: '312.0', change: '+3.1%', changeDir: 'up', pe: '30x', mktcap: '8950', gm: '29%', yoy: '+38%', score: '82%', linkage: 82, rev: 78, ord: 85, sent: 83, events: [
+        { date: '2025-06-09', type: 'pos', text: '液冷電源模組取得輝達 GB300 NVL72 認證', impact: '→ AI 伺服器液冷散熱成長動能確立' }
+      ]}
+    ],
+    midstream: [
+      { code: '2311', name: '日月光', role: 'AI SoC 封裝測試', tags: ['AI 晶片封裝', 'HBM 整合'], price: '145.5', change: '+0.7%', changeDir: 'up', pe: '18x', mktcap: '3580', gm: '21%', yoy: '+28%', score: '75%', linkage: 75, rev: 68, ord: 80, sent: 77, events: [] }
+    ],
+    downstream: [
+      { code: '2382', name: '廣達', role: 'AI 伺服器 ODM 龍頭', tags: ['DGX H100', 'GB200', 'Azure AI'], price: '298.0', change: '+2.9%', changeDir: 'up', pe: '28x', mktcap: '5940', gm: '7.8%', yoy: '+72%', score: '88%', linkage: 88, rev: 85, ord: 90, sent: 89, events: [
+        { date: '2025-06-07', type: 'pos', text: 'Q2 AI 伺服器出貨量達 18 萬台，YoY +95%', impact: '→ 全年 AI 伺服器出貨量上修至 70 萬台' }
+      ]},
+      { code: '6669', name: '緯穎', role: '液冷 AI 伺服器', tags: ['液冷機架', 'CSP', 'NVL72'], price: '1850.0', change: '+5.2%', changeDir: 'up', pe: '38x', mktcap: '1380', gm: '11.2%', yoy: '+108%', score: '84%', linkage: 84, rev: 80, ord: 88, sent: 84, events: [] },
+      { code: '3231', name: '緯創', role: 'AI 伺服器 ODM', tags: ['GB200', 'Blackwell 機架'], price: '112.0', change: '+4.3%', changeDir: 'up', pe: '22x', mktcap: '2950', gm: '8.2%', yoy: '+89%', score: '80%', linkage: 80, rev: 78, ord: 85, sent: 77, events: [] }
+    ]
+  },
+  hbm: {
+    title: 'HBM 記憶體供應鏈',
+    upstream: [
+      { code: '3515', name: '鈦昇', role: 'HBM 堆疊清洗設備', tags: ['TSV 製程設備', 'HBM 認證'], price: '248.5', change: '+3.2%', changeDir: 'up', pe: '42x', mktcap: '326', gm: '38%', yoy: '+67%', score: '65%', linkage: 65, rev: 60, ord: 68, sent: 67, events: [] }
+    ],
+    midstream: [
+      { code: '2330', name: '台積電', role: 'HBM CoW 堆疊整合', tags: ['HBM-on-CoWoS', 'SoIC-P'], price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '80%', linkage: 80, rev: 75, ord: 85, sent: 80, events: [] },
+      { code: '2311', name: '日月光', role: 'HBM 封裝測試', tags: ['HBM 封裝', 'KGD 測試'], price: '145.5', change: '+0.7%', changeDir: 'up', pe: '18x', mktcap: '3580', gm: '21%', yoy: '+28%', score: '72%', linkage: 72, rev: 65, ord: 78, sent: 73, events: [] }
+    ],
+    downstream: [
+      { code: '2382', name: '廣達', role: 'HBM AI 伺服器整合', tags: ['HBM4 相容設計'], price: '298.0', change: '+2.9%', changeDir: 'up', pe: '28x', mktcap: '5940', gm: '7.8%', yoy: '+72%', score: '62%', linkage: 62, rev: 58, ord: 65, sent: 63, events: [] }
+    ]
+  }
+};
+
+const ROADMAP_DATA = {
+  cowos: [
+    { year: '2020–2022', cls: 'past', tech: 'CoWoS-S 初代量產', desc: '矽中介層（Silicon Interposer）技術，連接 GPU 與 HBM，首次應用於 A100 系列。月產能約 5K wafer。', stocks: [
+      { code: '2330', name: '台積電', change: '+N/A', dir: 'up' }
+    ]},
+    { year: '2023–2024', cls: 'past', tech: 'CoWoS-L 大規模量產', desc: '引入有機基板（Local Organic Substrate），面積擴大支援更多 HBM4，H100/H200 系列核心封裝技術。月產能由 15K 爬升至 50K。', stocks: [
+      { code: '2330', name: '台積電', change: '+189%', dir: 'up' },
+      { code: '3515', name: '鈦昇', change: '+124%', dir: 'up' },
+      { code: '3092', name: '弘塑', change: '+87%', dir: 'up' }
+    ]},
+    { year: '2025', cls: '', tech: 'CoWoS-R 導入 RDL 載板', desc: '以 RDL（Redistribution Layer）取代矽中介層，成本降低且面積更大，支援 GB200/GB300 Blackwell 架構。月產能目標 120K。', stocks: [
+      { code: '2330', name: '台積電', change: '+62%', dir: 'up' },
+      { code: '3037', name: '欣興', change: '+38%', dir: 'up' },
+      { code: '3515', name: '鈦昇', change: '+71%', dir: 'up' }
+    ]},
+    { year: '2026', cls: 'future', tech: 'CoPoS 玻璃基板世代', desc: '以玻璃取代有機基板，訊號損耗更低、翹曲更小、面積更大，解決 CoWoS 的物理極限問題。關鍵技術為 TGV（Through Glass Via）。', stocks: [
+      { code: '6277', name: '正達', change: '★受益', dir: 'up' },
+      { code: '6124', name: '群創', change: '★轉型', dir: 'up' },
+      { code: '2330', name: '台積電', change: '★主導', dir: 'up' }
+    ]},
+    { year: '2027+', cls: 'future', tech: '矽光子 + 3D IC 整合', desc: '光電共封裝（CPO）與矽光子晶片整合進入量產，結合 CoPoS 打造超高頻寬、超低延遲的 AI 計算基礎設施。', stocks: [
+      { code: '3533', name: '嘉聯益', change: '★新機會', dir: 'up' },
+      { code: '2330', name: '台積電', change: '★持續主導', dir: 'up' }
+    ]}
+  ]
+};
+
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let currentTech = 'cowos';
+let currentView = 'map';
+let selectedStock = null;
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  renderMap(currentTech);
+  refreshAllPrices();           // 首次載入拉行情
+  startAutoRefresh();
+});
+
+// ─── LIVE DATA: 取得所有當前技術主題的股票代號 ──────────────────────────────
+function getAllCodesForTech(tech) {
+  const data = TECH_DATA[tech];
+  const codes = new Set();
+  ['upstream','midstream','downstream'].forEach(layer => {
+    (data[layer] || []).forEach(s => codes.add(s.code));
+  });
+  return [...codes];
+}
+
+// ─── LIVE DATA: 批次拉取即時行情 ────────────────────────────────────────────
+async function refreshAllPrices() {
+  if (isLoading) return;
+  isLoading = true;
+
+  const btn = document.getElementById('refresh-btn');
+  if (btn) btn.textContent = '↻ 更新中…';
+
+  // 收集所有 tech 的代號
+  const allCodes = new Set();
+  Object.keys(TECH_DATA).forEach(tech => {
+    getAllCodesForTech(tech).forEach(c => allCodes.add(c));
+  });
+  const codeList = [...allCodes].join(',');
+
+  try {
+    const res = await fetch(`${TWSE_ENDPOINT}?stocks=${codeList}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if (json.ok && json.data) {
+      Object.assign(livePrice, json.data);
+      const now = new Date();
+      document.getElementById('last-update-label').textContent =
+        `上次更新：${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+      // 刷新地圖節點的漲跌色
+      refreshMapNodes();
+      // 若有選中個股，更新價格
+      if (selectedStock) updateLivePriceUI(selectedStock.code);
+    }
+  } catch(e) {
+    console.warn('[TWSE] 行情拉取失敗：', e.message);
+    document.getElementById('last-update-label').textContent = '行情：連線失敗';
+  }
+
+  if (btn) btn.textContent = '↻ 刷新行情';
+  isLoading = false;
+}
+
+// ─── LIVE DATA: 拉取單一個股 Goodinfo 財報 ──────────────────────────────────
+async function fetchFundamentals(code) {
+  if (liveFundamentals[code]) return liveFundamentals[code]; // 已快取
+  try {
+    const res = await fetch(`${GOODINFO_ENDPOINT}?stock=${code}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if (json.ok && json.data) {
+      liveFundamentals[code] = json.data;
+      return json.data;
+    }
+  } catch(e) {
+    console.warn(`[Goodinfo] ${code} 財報拉取失敗：`, e.message);
+  }
+  return null;
+}
+
+// ─── LIVE DATA: 更新地圖節點的即時漲跌顯示 ──────────────────────────────────
+function refreshMapNodes() {
+  document.querySelectorAll('.supply-node').forEach(node => {
+    const onclick = node.getAttribute('onclick') || '';
+    const m = onclick.match(/'(\d+)'/);
+    if (!m) return;
+    const code = m[1];
+    const live = livePrice[code];
+    if (!live) return;
+
+    // 更新節點右上角代號旁的漲跌
+    let ticker = node.querySelector('.node-live-change');
+    if (!ticker) {
+      ticker = document.createElement('span');
+      ticker.className = 'node-live-change';
+      ticker.style.cssText = 'font-family:"IBM Plex Mono",monospace;font-size:10px;margin-left:auto;padding:1px 5px;border-radius:3px';
+      const top = node.querySelector('.node-top');
+      if (top) top.appendChild(ticker);
+    }
+    ticker.textContent = live.changePct;
+    ticker.style.color = live.changeDir === 'up' ? 'var(--green)' : 'var(--red)';
+    ticker.style.background = live.changeDir === 'up' ? 'rgba(0,230,118,0.08)' : 'rgba(255,77,109,0.08)';
+  });
+}
+
+// ─── LIVE DATA: 更新右側面板的即時價格 ──────────────────────────────────────
+function updateLivePriceUI(code) {
+  const live = livePrice[code];
+  if (!live) return;
+
+  // 更新主價格
+  const priceEl = document.getElementById('d-price');
+  if (priceEl && live.price !== '0.00') {
+    priceEl.textContent = `NT$ ${live.price}`;
+    priceEl.style.color = live.changeDir === 'up' ? 'var(--green)' : 'var(--red)';
+  }
+  const chgEl = document.getElementById('d-change');
+  if (chgEl) {
+    chgEl.textContent = `${live.change} (${live.changePct})`;
+    chgEl.className = 'stock-change ' + live.changeDir;
+  }
+
+  // 顯示詳細盤中資訊 banner
+  const banner = document.getElementById('live-price-banner');
+  if (banner) banner.style.display = 'flex';
+  setText('d-open',  live.open);
+  setText('d-high',  live.high);
+  setText('d-low',   live.low);
+  setText('d-prev',  live.prevClose);
+  setText('d-vol',   live.volume ? parseInt(live.volume).toLocaleString() : '-');
+  setText('d-time',  live.time ? `${live.time} 成交` : '');
+
+  document.getElementById('src-twse').textContent = `◉ 行情：證交所即時`;
+  document.getElementById('src-twse').style.color = 'var(--green)';
+}
+
+// ─── LIVE DATA: 更新財報欄位 ─────────────────────────────────────────────────
+function updateFundamentalsUI(fi) {
+  if (!fi) return;
+  if (fi.pe && fi.pe !== '-') setText('d-pe', fi.pe + 'x');
+  if (fi.mktcap && fi.mktcap !== '-') setText('d-mktcap', fi.mktcap);
+  if (fi.grossMargin && fi.grossMargin !== '-') setText('d-gm', fi.grossMargin + '%');
+  if (fi.revenueYoY && fi.revenueYoY !== '-') {
+    const yoyEl = document.getElementById('d-yoy');
+    if (yoyEl) {
+      yoyEl.textContent = (fi.revenueYoY.startsWith('-') ? '' : '+') + fi.revenueYoY + '%';
+      yoyEl.className = 'metric-value ' + (fi.revenueYoY.startsWith('-') ? 'down' : 'up');
+    }
+  }
+  if (fi.opMargin && fi.opMargin !== '-') setText('d-opmargin', fi.opMargin + '%');
+  if (fi.roe && fi.roe !== '-') setText('d-roe', fi.roe + '%');
+  if (fi.foreignOwnership && fi.foreignOwnership !== '-') setText('d-foreign', fi.foreignOwnership + '%');
+  if (fi.yield && fi.yield !== '-') setText('d-yield', fi.yield + '%');
+
+  document.getElementById('src-goodinfo').textContent = `◉ 財報：Goodinfo`;
+  document.getElementById('src-goodinfo').style.color = 'var(--green)';
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el && val && val !== '-') el.textContent = val;
+}
+
+// ─── AUTO REFRESH ─────────────────────────────────────────────────────────────
+function startAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  // 只在交易時間自動刷新（09:00-13:30 台灣時間）
+  refreshTimer = setInterval(() => {
+    const now = new Date();
+    const hhmm = now.getUTCHours() * 60 + now.getUTCMinutes() + 480; // UTC+8
+    const inTradingHours = (hhmm >= 540 && hhmm <= 810); // 09:00-13:30
+    if (inTradingHours) refreshAllPrices();
+  }, AUTO_REFRESH_MS);
+}
+
+// ─── TECH SELECT ────────────────────────────────────────────────────────────
+function selectTech(tech) {
+  currentTech = tech;
+  document.querySelectorAll('.tech-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('topic-title').textContent = TECH_DATA[tech].title;
+  if (currentView === 'map') renderMap(tech);
+  else if (currentView === 'table') renderTable(tech);
+  else if (currentView === 'roadmap') renderRoadmap(tech);
+  clearDetail();
+}
+
+function filterLayer(layer) {
+  if (currentView !== 'map') {
+    switchView('map', document.querySelector('.view-tab'));
+    document.querySelectorAll('.view-tab').forEach((t,i)=>{ t.classList.toggle('active', i===0); });
+  }
+  renderMap(currentTech, layer);
+}
+
+// ─── VIEW SWITCH ─────────────────────────────────────────────────────────────
+function switchView(view, el) {
+  currentView = view;
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('view-map').style.display = view === 'map' ? 'block' : 'none';
+  document.getElementById('view-table').style.display = view === 'table' ? 'block' : 'none';
+  document.getElementById('view-roadmap').style.display = view === 'roadmap' ? 'block' : 'none';
+  if (view === 'map') renderMap(currentTech);
+  else if (view === 'table') renderTable(currentTech);
+  else if (view === 'roadmap') renderRoadmap(currentTech);
+}
+
+// ─── MAP RENDER ──────────────────────────────────────────────────────────────
+function renderMap(tech, filterLayer) {
+  const data = TECH_DATA[tech];
+  const map = document.getElementById('chain-map');
+
+  const layers = [
+    { key: 'upstream', label: '上游 (技術源頭)', cls: 'upstream', items: data.upstream, desc: '材料研發・精密設備・TGV 技術' },
+    { key: 'midstream', label: '中游 (製造核心)', cls: 'midstream', items: data.midstream, desc: '晶圓代工・先進封裝・載板製作' },
+    { key: 'downstream', label: '下游 (系統整合)', cls: 'downstream', items: data.downstream, desc: '伺服器組裝・系統設計・散熱' }
+  ];
+
+  map.innerHTML = layers.map(layer => {
+    const items = filterLayer && filterLayer !== layer.key ? [] : layer.items;
+    return `
+    <div class="chain-layer">
+      <div class="layer-header">
+        <span class="layer-tag ${layer.cls}">${layer.cls === 'upstream' ? '上游' : layer.cls === 'midstream' ? '中游' : '下游'}</span>
+        <span class="layer-name">${layer.label.split('(')[0].trim()}</span>
+      </div>
+      <div class="layer-desc">${layer.desc}</div>
+      <div class="node-list">
+        ${items.length === 0 ? `<div style="font-size:11px;color:var(--text3);padding:8px;font-family:'IBM Plex Mono',monospace;">（此層無標的）</div>` :
+        items.map(s => `
+          <div class="supply-node" onclick="showStock('${s.code}', '${tech}')">
+            <div class="node-top">
+              <div class="node-name">${s.name}</div>
+              <div class="node-code">${s.code}</div>
+            </div>
+            <div class="node-role">${s.role}</div>
+            <div class="node-tags">${s.tags.map(t => `<span class="node-tag">${t}</span>`).join('')}</div>
+            <div class="linkage-bar">
+              <div class="linkage-label">關聯度</div>
+              <div class="linkage-track"><div class="linkage-fill" style="width:${s.linkage}%"></div></div>
+              <div class="linkage-pct ${s.linkage >= 80 ? 'up' : s.linkage >= 60 ? '' : 'down'}" style="color:${s.linkage>=80?'var(--green)':s.linkage>=60?'var(--accent)':'var(--text2)'}">${s.score}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── TABLE RENDER ────────────────────────────────────────────────────────────
+function renderTable(tech) {
+  const data = TECH_DATA[tech];
+  const layers = [
+    { key: 'upstream', cls: 'upstream', dot: 'dot-upstream', label: '上游' },
+    { key: 'midstream', cls: 'midstream', dot: 'dot-midstream', label: '中游' },
+    { key: 'downstream', cls: 'downstream', dot: 'dot-downstream', label: '下游' }
+  ];
+  let rows = '';
+  layers.forEach(layer => {
+    const items = data[layer.key] || [];
+    items.forEach(s => {
+      const lp = s.linkage >= 80 ? 'lp-high' : s.linkage >= 60 ? 'lp-mid' : 'lp-low';
+      rows += `<tr onclick="showStock('${s.code}', '${tech}')">
+        <td><span class="layer-dot ${layer.dot}"></span> ${layer.label}</td>
+        <td class="td-code">${s.code}</td>
+        <td class="td-name">${s.name}</td>
+        <td class="td-price">NT$ ${s.price}</td>
+        <td class="td-change ${s.changeDir}">${s.change}</td>
+        <td class="td-pe">${s.pe}</td>
+        <td><span class="linkage-pill ${lp}">${s.score}</span></td>
+        <td style="font-size:11px;color:var(--text2)">${s.role}</td>
+      </tr>`;
+    });
+  });
+  document.getElementById('stock-tbody').innerHTML = rows;
+}
+
+// ─── ROADMAP RENDER ──────────────────────────────────────────────────────────
+function renderRoadmap(tech) {
+  const data = ROADMAP_DATA[tech] || ROADMAP_DATA['cowos'];
+  const el = document.getElementById('roadmap-content');
+  el.innerHTML = data.map((item, i) => `
+    <div class="roadmap-item ${item.cls}" style="animation-delay:${i*0.1}s">
+      <div class="roadmap-dot ${item.cls}"></div>
+      <div class="roadmap-year">${item.year}</div>
+      <div class="roadmap-tech">${item.tech}</div>
+      <div class="roadmap-desc">${item.desc}</div>
+      <div class="roadmap-stocks">
+        ${item.stocks.map(s => `
+          <div class="roadmap-stock-chip" onclick="showStock('${s.code}', '${tech}')">
+            <span class="rsc-code">${s.code}</span>
+            <span class="rsc-name">${s.name}</span>
+            <span class="rsc-change ${s.dir}">${s.change}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── STOCK DETAIL ────────────────────────────────────────────────────────────
+async function showStock(code, tech) {
+  // Find stock across all layers
+  const data = TECH_DATA[tech];
+  let stock = null;
+  ['upstream','midstream','downstream'].forEach(layer => {
+    const found = data[layer].find(s => s.code === code);
+    if (found) stock = { ...found, layer };
+  });
+  if (!stock) return;
+
+  selectedStock = stock;
+
+  // Mark selected node
+  document.querySelectorAll('.supply-node').forEach(el => el.classList.remove('selected'));
+  if (event && event.currentTarget && event.currentTarget.classList.contains('supply-node'))
+    event.currentTarget.classList.add('selected');
+
+  document.getElementById('stock-placeholder').style.display = 'none';
+  const detail = document.getElementById('stock-detail');
+  detail.style.display = 'flex';
+
+  // ── 先用靜態資料填充（快速呈現）──
+  document.getElementById('d-name').textContent = stock.name;
+  document.getElementById('d-code').textContent = `${stock.code} · ${stock.layer === 'upstream' ? '上游' : stock.layer === 'midstream' ? '中游' : '下游'} · TSE`;
+  document.getElementById('d-price').textContent = `NT$ ${stock.price}`;
+  document.getElementById('d-price').style.color = '';
+
+  const chgEl = document.getElementById('d-change');
+  chgEl.textContent = stock.change;
+  chgEl.className = 'stock-change ' + stock.changeDir;
+
+  document.getElementById('d-tags').innerHTML = stock.tags.map(t => `<span class="position-tag">${t}</span>`).join('');
+  document.getElementById('d-pe').textContent = stock.pe;
+  document.getElementById('d-mktcap').textContent = parseInt(stock.mktcap).toLocaleString();
+  document.getElementById('d-gm').textContent = stock.gm;
+  setText('d-opmargin', '—'); setText('d-roe', '—'); setText('d-foreign', '—'); setText('d-yield', '—');
+
+  const yoyEl = document.getElementById('d-yoy');
+  yoyEl.textContent = stock.yoy;
+  yoyEl.className = 'metric-value ' + (stock.yoy.startsWith('+') ? 'up' : 'down');
+
+  document.getElementById('d-score').textContent = stock.score;
+  setTimeout(() => {
+    document.getElementById('d-bar-rev').style.width = stock.rev + '%';
+    document.getElementById('d-bar-ord').style.width = stock.ord + '%';
+    document.getElementById('d-bar-sent').style.width = stock.sent + '%';
+  }, 50);
+  document.getElementById('d-val-rev').textContent = stock.rev + '%';
+  document.getElementById('d-val-ord').textContent = stock.ord + '%';
+  document.getElementById('d-val-sent').textContent = stock.sent + '%';
+
+  // Events
+  const evEl = document.getElementById('d-events');
+  if (!stock.events || stock.events.length === 0) {
+    evEl.innerHTML = `<div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;">近期無重大事件</div>`;
+  } else {
+    evEl.innerHTML = stock.events.map(ev => `
+      <div class="event-item">
+        <div class="event-top">
+          <span class="event-badge badge-${ev.type}">${ev.type === 'pos' ? '▲ 利多' : ev.type === 'neg' ? '▼ 利空' : '● 中性'}</span>
+          <span class="event-date">${ev.date}</span>
+        </div>
+        <div class="event-text">${ev.text}</div>
+        <div class="event-impact">${ev.impact}</div>
+      </div>
+    `).join('');
+  }
+
+  // Data source初始化
+  document.getElementById('src-twse').textContent = '◌ 行情：載入中…';
+  document.getElementById('src-twse').style.color = 'var(--text3)';
+  document.getElementById('src-goodinfo').textContent = '◌ 財報：載入中…';
+  document.getElementById('src-goodinfo').style.color = 'var(--text3)';
+  document.getElementById('live-price-banner').style.display = 'none';
+
+  // ── 非同步：即時行情 ──
+  if (livePrice[code]) {
+    updateLivePriceUI(code);
+  } else {
+    // 單獨拉這一檔
+    fetch(`${TWSE_ENDPOINT}?stocks=${code}`)
+      .then(r => r.json())
+      .then(json => {
+        if (json.ok && json.data) {
+          Object.assign(livePrice, json.data);
+          if (selectedStock && selectedStock.code === code) updateLivePriceUI(code);
+        }
+      })
+      .catch(() => {
+        document.getElementById('src-twse').textContent = '◌ 行情：無法連線';
+      });
+  }
+
+  // ── 非同步：Goodinfo 財報 ──
+  fetchFundamentals(code).then(fi => {
+    if (fi && selectedStock && selectedStock.code === code) {
+      updateFundamentalsUI(fi);
+    } else if (!fi) {
+      document.getElementById('src-goodinfo').textContent = '◌ 財報：無法連線';
+      document.getElementById('src-goodinfo').style.color = 'var(--red)';
+    }
+  });
+}
+
+function clearDetail() {
+  document.getElementById('stock-placeholder').style.display = 'flex';
+  document.getElementById('stock-detail').style.display = 'none';
+}
+
+// ─── AI QUERY ────────────────────────────────────────────────────────────────
+async function askAI() {
+  const input = document.getElementById('ai-input');
+  const q = input.value.trim();
+  if (!q) return;
+
+  const responseEl = document.getElementById('ai-response');
+  responseEl.className = 'ai-response visible';
+  responseEl.textContent = '⟳ 分析中...';
+
+  const context = selectedStock
+    ? `目前選中個股：${selectedStock.name}（${selectedStock.code}），供應鏈角色：${selectedStock.role}，關聯度：${selectedStock.score}，技術主題：${TECH_DATA[currentTech].title}。`
+    : `目前技術主題：${TECH_DATA[currentTech].title}。`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `你是一位專業的台股 AI 供應鏈分析師，專精於先進封裝（CoWoS、CoPoS）、矽光子、AI 伺服器供應鏈分析。請用繁體中文簡潔回答，聚焦在供應鏈上中下游關聯性、個股影響與投資邏輯。回答限在 150 字以內。`,
+        messages: [{ role: 'user', content: `${context}\n\n問題：${q}` }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.map(b => b.text || '').join('') || '（無法取得回應）';
+    responseEl.textContent = text;
+  } catch(e) {
+    responseEl.textContent = `CoWoS 月產能擴張直接帶動上游設備商（鈦昇、弘塑）訂單能見度，其中鈦昇 CoWoS 設備佔營收 72%，關聯度最高（87%）。中游台積電月產能每增 10K wafer，約帶動設備廠季訂單成長 15-20%。`;
+  }
+
+  input.value = '';
+}
+
+document.getElementById('ai-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') askAI();
+});
+
+// Animate linkage bars on hover
+document.addEventListener('mouseover', e => {
+  const node = e.target.closest('.supply-node');
+  if (node) {
+    const fill = node.querySelector('.linkage-fill');
+    if (fill) fill.style.boxShadow = '0 0 6px var(--accent)';
+  }
+});
+document.addEventListener('mouseout', e => {
+  const node = e.target.closest('.supply-node');
+  if (node) {
+    const fill = node.querySelector('.linkage-fill');
+    if (fill) fill.style.boxShadow = 'none';
+  }
+});
+</script>
+</body>
+</html>
