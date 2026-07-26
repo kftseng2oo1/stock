@@ -3,8 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
 <title>ChainScope · AI 供應鏈股票追蹤</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <style>
@@ -1310,18 +1308,18 @@ const TECH_DATA = {
     title: 'CoWoS 先進封裝供應鏈',
     upstream: [
       // 子層：製程設備
-      { code: '3515', sublayer: 'equipment', name: '鈦昇', role: 'CoWoS 濕製程設備', tags: ['晶圓清洗設備', 'CoWoS 認證'], risk: 'low', riskNote: '台積電擴產直接帶動', transitionCoeff: '+↑', tcNote: '月產能每+10K wafer，訂單+15~20%', price: '248.5', change: '+3.2%', changeDir: 'up', pe: '42x', mktcap: '326', gm: '38%', yoy: '+67%', score: '87%', linkage: 87, rev: 72, ord: 88, sent: 91, events: [
+      { code: '8027', sublayer: 'equipment', name: '鈦昇', role: 'CoWoS 濕製程設備', tags: ['晶圓清洗設備', 'CoWoS 認證'], risk: 'low', riskNote: '台積電擴產直接帶動', transitionCoeff: '+↑', tcNote: '月產能每+10K wafer，訂單+15~20%', price: '248.5', change: '+3.2%', changeDir: 'up', pe: '42x', mktcap: '326', gm: '38%', yoy: '+67%', score: '87%', linkage: 87, rev: 72, ord: 88, sent: 91, events: [
         { date: '2025-06-10', type: 'pos', text: '法說會透露 CoWoS 設備新訂單超出預期，Q3 交機量將達 180 台', impact: '→ CoWoS 月產能擴張直接受益' },
         { date: '2025-05-28', type: 'neu', text: '公告董事會通過現金增資案，募資用於擴廠', impact: '→ 稀釋 EPS 約 4%，惟長期產能看增' }
       ]},
-      { code: '3092', sublayer: 'equipment', name: '弘塑', role: '先進封裝製程設備', tags: ['單片清洗機', 'ALD 設備'], risk: 'low', riskNote: '台積電 CoWoS-L 認證廠商', transitionCoeff: '+↑', tcNote: 'CoWoS-L 量產擴大，需求同步增長', price: '412.0', change: '+1.8%', changeDir: 'up', pe: '35x', mktcap: '285', gm: '42%', yoy: '+48%', score: '74%', linkage: 74, rev: 65, ord: 72, sent: 85, events: [
+      { code: '3131', sublayer: 'equipment', name: '弘塑', role: '先進封裝製程設備', tags: ['單片清洗機', 'ALD 設備'], risk: 'low', riskNote: '台積電 CoWoS-L 認證廠商', transitionCoeff: '+↑', tcNote: 'CoWoS-L 量產擴大，需求同步增長', price: '412.0', change: '+1.8%', changeDir: 'up', pe: '35x', mktcap: '285', gm: '42%', yoy: '+48%', score: '74%', linkage: 74, rev: 65, ord: 72, sent: 85, events: [
         { date: '2025-06-08', type: 'pos', text: '取得台積電 CoWoS-L 製程驗證資格，進入量產供應', impact: '→ 正式成為 CoWoS-L 設備供應商' }
       ]},
       { code: '3583', sublayer: 'equipment', name: '辛耘', role: '晶圓研磨暨清洗設備', tags: ['CMP 製程', '薄晶圓處理'], risk: 'medium', riskNote: '競品壓力升溫，市占率承壓', transitionCoeff: '→', tcNote: '成長動能趨緩，需關注技術差異化', price: '167.5', change: '-0.9%', changeDir: 'down', pe: '28x', mktcap: '189', gm: '35%', yoy: '+32%', score: '61%', linkage: 61, rev: 55, ord: 60, sent: 68, events: [
         { date: '2025-05-30', type: 'neg', text: '競爭對手 DNS 推出新型 CMP 設備，規格略勝一籌', impact: '→ 短期市占率壓力，CoWoS 關聯度小幅下修' }
       ]},
       // 子層：關鍵材料
-      { code: '6277', sublayer: 'material', name: '正達', role: '玻璃基板材料先驅', tags: ['TGV 玻璃基板', 'CoPoS 核心材料'], risk: 'low', riskNote: 'CoPoS 世代唯一量產玻璃基板廠', transitionCoeff: '+↑↑', tcNote: 'CoPoS 技術轉型加速，關聯度持續拉升中', price: '186.0', change: '+7.1%', changeDir: 'up', pe: '58x', mktcap: '410', gm: '31%', yoy: '+120%', score: '92%', linkage: 92, rev: 88, ord: 95, sent: 93, events: [
+      { code: '3149', sublayer: 'material', name: '正達', role: '玻璃基板材料先驅', tags: ['TGV 玻璃基板', 'CoPoS 核心材料'], risk: 'low', riskNote: 'CoPoS 世代唯一量產玻璃基板廠', transitionCoeff: '+↑↑', tcNote: 'CoPoS 技術轉型加速，關聯度持續拉升中', price: '186.0', change: '+7.1%', changeDir: 'up', pe: '58x', mktcap: '410', gm: '31%', yoy: '+120%', score: '92%', linkage: 92, rev: 88, ord: 95, sent: 93, events: [
         { date: '2025-06-12', type: 'pos', text: '公告玻璃基板首批量產出貨，客戶為 AI 晶片大廠', impact: '→ CoPoS 玻璃基板技術落地，關聯度大幅提升' },
         { date: '2025-06-01', type: 'neu', text: '日本旭硝子入股 12%，技術合作深化', impact: '→ 原材料供應鏈穩定度提升' }
       ]},
@@ -1352,10 +1350,10 @@ const TECH_DATA = {
   copos: {
     title: 'CoPoS 玻璃基板供應鏈',
     upstream: [
-      { code: '6277', sublayer: 'material', name: '正達', role: '玻璃基板核心供應商', tags: ['TGV 技術', 'CoPoS 材料'], risk: 'low', riskNote: 'CoPoS 世代最直接受益材料廠', transitionCoeff: '+↑↑', tcNote: 'CoPoS 量產時程明朗，關聯度持續拉升', price: '186.0', change: '+7.1%', changeDir: 'up', pe: '58x', mktcap: '410', gm: '31%', yoy: '+120%', score: '95%', linkage: 95, rev: 90, ord: 98, sent: 97, events: [
+      { code: '3149', sublayer: 'material', name: '正達', role: '玻璃基板核心供應商', tags: ['TGV 技術', 'CoPoS 材料'], risk: 'low', riskNote: 'CoPoS 世代最直接受益材料廠', transitionCoeff: '+↑↑', tcNote: 'CoPoS 量產時程明朗，關聯度持續拉升', price: '186.0', change: '+7.1%', changeDir: 'up', pe: '58x', mktcap: '410', gm: '31%', yoy: '+120%', score: '95%', linkage: 95, rev: 90, ord: 98, sent: 97, events: [
         { date: '2025-06-12', type: 'pos', text: '玻璃基板首批量產出貨，進入 CoPoS 供應鏈核心', impact: '→ CoPoS 供應鏈最直接受益標的' }
       ]},
-      { code: '6124', sublayer: 'material', name: '群創', role: '玻璃基板製造轉型', tags: ['玻璃面板加工', 'TGV 鑽孔'], risk: 'medium', riskNote: '轉型初期，量產時程仍有不確定性', transitionCoeff: '+→', tcNote: '關聯度持續上升中，轉型進度為關鍵變數', price: '14.8', change: '+0.7%', changeDir: 'up', pe: '12x', mktcap: '412', gm: '9%', yoy: '+8%', score: '45%', linkage: 45, rev: 35, ord: 48, sent: 52, events: [
+      { code: '3481', sublayer: 'material', name: '群創', role: '玻璃基板製造轉型', tags: ['玻璃面板加工', 'TGV 鑽孔'], risk: 'medium', riskNote: '轉型初期，量產時程仍有不確定性', transitionCoeff: '+→', tcNote: '關聯度持續上升中，轉型進度為關鍵變數', price: '14.8', change: '+0.7%', changeDir: 'up', pe: '12x', mktcap: '412', gm: '9%', yoy: '+8%', score: '45%', linkage: 45, rev: 35, ord: 48, sent: 52, events: [
         { date: '2025-05-20', type: 'neu', text: '宣布與正達合作開發玻璃基板加工產線', impact: '→ 轉型 CoPoS 供應商，關聯度持續上升中' }
       ]}
     ],
@@ -1410,7 +1408,7 @@ const TECH_DATA = {
   hbm: {
     title: 'HBM 記憶體供應鏈',
     upstream: [
-      { code: '3515', sublayer: 'equipment', name: '鈦昇', role: 'HBM 堆疊清洗設備', tags: ['TSV 製程設備', 'HBM 認證'], risk: 'low', riskNote: 'HBM 需求持續高速增長', transitionCoeff: '+↑', tcNote: 'HBM 每代容量翻倍，設備需求同步增加', price: '248.5', change: '+3.2%', changeDir: 'up', pe: '42x', mktcap: '326', gm: '38%', yoy: '+67%', score: '65%', linkage: 65, rev: 60, ord: 68, sent: 67, events: [] }
+      { code: '8027', sublayer: 'equipment', name: '鈦昇', role: 'HBM 堆疊清洗設備', tags: ['TSV 製程設備', 'HBM 認證'], risk: 'low', riskNote: 'HBM 需求持續高速增長', transitionCoeff: '+↑', tcNote: 'HBM 每代容量翻倍，設備需求同步增加', price: '248.5', change: '+3.2%', changeDir: 'up', pe: '42x', mktcap: '326', gm: '38%', yoy: '+67%', score: '65%', linkage: 65, rev: 60, ord: 68, sent: 67, events: [] }
     ],
     midstream: [
       { code: '2330', name: '台積電', role: 'HBM CoW 堆疊整合', tags: ['HBM-on-CoWoS', 'SoIC-P'], risk: 'low', riskNote: 'HBM 整合為 CoWoS 差異化優勢', transitionCoeff: '+↑', tcNote: 'HBM4 導入加速 CoW 技術滲透', price: '978.0', change: '+2.1%', changeDir: 'up', pe: '26x', mktcap: '253000', gm: '53%', yoy: '+35%', score: '80%', linkage: 80, rev: 75, ord: 85, sent: 80, events: [] },
@@ -1429,17 +1427,17 @@ const ROADMAP_DATA = {
     ]},
     { year: '2023–2024', cls: 'past', tech: 'CoWoS-L 大規模量產', desc: '引入有機基板（Local Organic Substrate），面積擴大支援更多 HBM4，H100/H200 系列核心封裝技術。月產能由 15K 爬升至 50K。', stocks: [
       { code: '2330', name: '台積電', change: '+189%', dir: 'up' },
-      { code: '3515', name: '鈦昇', change: '+124%', dir: 'up' },
-      { code: '3092', name: '弘塑', change: '+87%', dir: 'up' }
+      { code: '8027', name: '鈦昇', change: '+124%', dir: 'up' },
+      { code: '3131', name: '弘塑', change: '+87%', dir: 'up' }
     ]},
     { year: '2025', cls: '', tech: 'CoWoS-R 導入 RDL 載板', desc: '以 RDL（Redistribution Layer）取代矽中介層，成本降低且面積更大，支援 GB200/GB300 Blackwell 架構。月產能目標 120K。', stocks: [
       { code: '2330', name: '台積電', change: '+62%', dir: 'up' },
       { code: '3037', name: '欣興', change: '+38%', dir: 'up' },
-      { code: '3515', name: '鈦昇', change: '+71%', dir: 'up' }
+      { code: '8027', name: '鈦昇', change: '+71%', dir: 'up' }
     ]},
     { year: '2026', cls: 'future', tech: 'CoPoS 玻璃基板世代', desc: '以玻璃取代有機基板，訊號損耗更低、翹曲更小、面積更大，解決 CoWoS 的物理極限問題。關鍵技術為 TGV（Through Glass Via）。', stocks: [
-      { code: '6277', name: '正達', change: '★受益', dir: 'up' },
-      { code: '6124', name: '群創', change: '★轉型', dir: 'up' },
+      { code: '3149', name: '正達國際光電', change: '★受益', dir: 'up' },
+      { code: '3481', name: '群創', change: '★轉型', dir: 'up' },
       { code: '2330', name: '台積電', change: '★主導', dir: 'up' }
     ]},
     { year: '2027+', cls: 'future', tech: '矽光子 + 3D IC 整合', desc: '光電共封裝（CPO）與矽光子晶片整合進入量產，結合 CoPoS 打造超高頻寬、超低延遲的 AI 計算基礎設施。', stocks: [
