@@ -1,44 +1,19 @@
-# 股市探針
+# ChainScope · AI 供應鏈股票追蹤（股市探針）
 
-> 股市探針應該概念
+以台股 AI 供應鏈為主軸的股票追蹤：依技術主題看產業地圖、即時行情、基本面與 AI 分析。
 
-## 📦 包含檔案
+**線上使用**：https://kftseng2oo1.github.io/stock/
 
-- `icon-192.png`
-- `icon-512.png`
-- `manifest.json`
-- `sw.js`
-- `index.html`
-- `icon.svg`
-- `icon-maskable.svg`
-- `offline.html`
+## 主要功能
+- 技術主題：CoWoS、CoPoS、矽光子、AI 伺服器、HBM 記憶體
+- 產業層級：上游材料／設備、中游製造代工、下游系統整合
+- 三種檢視：⬡ 產業地圖、▤ 股票列表、◈ 技術路線圖
+- 個股：即時股價（自動刷新）、基本面、題材與近期消息，以及 AI 解讀
+- 手機版有獨立的選單與個股頁
 
-## 🚀 部署到 GitHub Pages
+## 技術與依賴
+- 單檔 HTML PWA（`index.html` 內含全部 HTML/CSS/JS），`manifest.json` + `sw.js` 提供安裝到主畫面與離線快取。
+- 後端：`twinklehub.kftseng2oo1.workers.dev`（`/twse-proxy` 行情、`/goodinfo-proxy` 基本面、`/claude` AI 分析）
 
-```bash
-git init
-git add .
-git commit -m "init: 股市探針 PWA"
-git branch -M main
-git remote add origin https://github.com/<username>/<repo>.git
-git push -u origin main
-```
-
-然後在 GitHub repo → **Settings → Pages** → Source 選 `main` 分支，等待幾分鐘後即可訪問。
-
-## 📱 安裝 PWA
-
-在支援的瀏覽器（Chrome / Edge / Safari iOS）中打開網頁，  
-點擊「**安裝**」或「**加入主畫面**」即可將此 App 安裝到裝置。
-
-## ⚙ 技術規格
-
-| 項目 | 值 |
-|------|-----|
-| display | standalone |
-| theme_color | #1a73e8 |
-| lang | zh-TW |
-| scope | /stock/ |
-
----
-*由 [PWA 打包神器](https://github.com) 自動生成*
+## 備註
+- 資料與 AI 分析僅供參考，不構成投資建議。
