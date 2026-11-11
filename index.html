@@ -1984,7 +1984,7 @@ async function askAI() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-5-5',
         max_tokens: 1000,
         system: '你是台股 AI 供應鏈分析師，專精先進封裝（CoWoS/CoPoS）、矽光子、AI 伺服器供應鏈。用繁體中文簡潔回答，聚焦供應鏈上下游關聯性與投資邏輯，150 字以內。',
         messages: [{ role: 'user', content: `${context}\n\n${q}` }]
@@ -2140,7 +2140,7 @@ async function askAIMobile() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', max_tokens: 1000,
+        model: 'claude-sonnet-5-5', max_tokens: 1000,
         system: '你是台股 AI 供應鏈分析師，專精先進封裝與 AI 伺服器供應鏈，用繁體中文簡潔回答，150 字以內。',
         messages: [{ role: 'user', content: `${context}\n\n${q}` }]
       })
